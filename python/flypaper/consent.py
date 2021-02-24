@@ -1,8 +1,8 @@
 """
-This module imeplements Flypaper's user consent mechanisms.
+This module implements Flypaper's user consent mechanisms.
 """
 import os
-from typing import Callable, List, Optional, Sequence, Union
+from typing import Callable, cast, Sequence, Union
 
 ConsentMechanism = Callable[[], bool]
 
@@ -14,7 +14,7 @@ class FlypaperConsent:
 
     def __init__(self, *mechanisms: Union[bool, ConsentMechanism]) -> None:
         if not mechanisms:
-            mechanisms = [False]
+            mechanisms = (False,)
         self._mechanisms = mechanisms
 
     def check(self) -> bool:
@@ -27,7 +27,7 @@ class FlypaperConsent:
                 continue
             elif mechanism is False:
                 return False
-            elif not mechanism():
+            elif not cast(ConsentMechanism, mechanism)():
                 return False
         return True
 
