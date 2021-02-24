@@ -1,2 +1,3 @@
 # flypaper
-Do you build developer tools? Flypaper helps you know your users.
+
+Do you build developer tools? Get to know your users better with Flypaper.

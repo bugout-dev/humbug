@@ -13,7 +13,7 @@ setup(
         "dev": ["black", "mypy", "wheel"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
-    description="Flypaper: Do you build developer tools? Flypaper helps you know your users.",
+    description="Flypaper: Do you build developer tools? Get to know your users better with Flypaper.",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Bugout.dev",
