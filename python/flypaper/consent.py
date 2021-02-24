@@ -33,10 +33,10 @@ class FlypaperConsent:
 
 
 def environment_variable_opt_in(
-    varname: str, affirmative_values: Sequence[str]
+    varname: str, opt_in_values: Sequence[str]
 ) -> ConsentMechanism:
     def mechanism() -> bool:
-        if os.environ.get(varname) in affirmative_values:
+        if os.environ.get(varname) in opt_in_values:
             return True
         return False
 
@@ -44,10 +44,10 @@ def environment_variable_opt_in(
 
 
 def environment_variable_opt_out(
-    varname: str, negative_values: Sequence[str]
+    varname: str, opt_out_values: Sequence[str]
 ) -> ConsentMechanism:
     def mechanism() -> bool:
-        if os.environ.get(varname) in negative_values:
+        if os.environ.get(varname) in opt_out_values:
             return False
         return True
 
