@@ -1,7 +1,7 @@
 name: Lint mirror
 
 on:
-  pull_request:
+  pull_request_target:
     paths:
       - 'python/**'
 
