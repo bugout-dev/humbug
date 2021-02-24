@@ -19,8 +19,10 @@ setup(
     author="Bugout.dev",
     author_email="engineering@bugout.dev",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         "Programming Language :: Python",
+        "License :: OSI Approved :: Apache Software License",
+        "Topic :: Software Development :: Libraries",
     ],
     url="https://github.com/bugout-dev/flypaper",
 )
