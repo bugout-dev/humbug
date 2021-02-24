@@ -11,7 +11,7 @@ setup(
     install_requires=["bugout"],
     extras_require={
         "dev": ["black", "mypy", "wheel"],
-        "distribute": ["twine"],
+        "distribute": ["setuptools", "twine", "wheel"],
     },
     description="Flypaper: Do you build developer tools? Flypaper helps you know your users.",
     long_description=long_description,
