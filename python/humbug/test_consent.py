@@ -95,9 +95,7 @@ class TestHumbugConsent(unittest.TestCase):
             consent.environment_variable_opt_in(
                 "HUMBUG_TEST_OPT_IN_AFFIRMATIVE", ["1"]
             ),
-            consent.environment_variable_opt_out(
-                "HUMBUG_TEST_OPT_OUT_NEGATIVE", ["1"]
-            ),
+            consent.environment_variable_opt_out("HUMBUG_TEST_OPT_OUT_NEGATIVE", ["1"]),
         )
         self.assertTrue(consent_state.check())
 
@@ -105,9 +103,7 @@ class TestHumbugConsent(unittest.TestCase):
         consent_state = consent.HumbugConsent(
             True,
             consent.environment_variable_opt_in("HUMBUG_TEST_OPT_IN_NEGATIVE", ["1"]),
-            consent.environment_variable_opt_out(
-                "HUMBUG_TEST_OPT_OUT_NEGATIVE", ["1"]
-            ),
+            consent.environment_variable_opt_out("HUMBUG_TEST_OPT_OUT_NEGATIVE", ["1"]),
         )
         self.assertFalse(consent_state.check())
 
