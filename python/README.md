@@ -1,3 +1,3 @@
-# Flypaper Python
+# Humbug Python
 
-This is the Flypaper Python library
+This is the Humbug Python library
