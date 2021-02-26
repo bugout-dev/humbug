@@ -1,5 +1,5 @@
 """
-This module implements Flypaper's user consent mechanisms.
+This module implements Humbug's user consent mechanisms.
 """
 import os
 from typing import Callable, cast, Sequence, Union
@@ -7,9 +7,9 @@ from typing import Callable, cast, Sequence, Union
 ConsentMechanism = Callable[[], bool]
 
 
-class FlypaperConsent:
+class HumbugConsent:
     """
-    FlypaperConsent stores the client's consent settings.
+    HumbugConsent stores the client's consent settings.
     """
 
     def __init__(self, *mechanisms: Union[bool, ConsentMechanism]) -> None:

@@ -1,5 +1,5 @@
 """
-This module implements all Flypaper methods related to generating reports and publishing them to
+This module implements all Humbug methods related to generating reports and publishing them to
 Bugout knowledge bases.
 """
 from dataclasses import dataclass, field
@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from bugout.app import Bugout
 
-from .consent import FlypaperConsent
+from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
     generate as generate_system_information,
@@ -27,7 +27,7 @@ class Reporter:
     def __init__(
         self,
         name: str,
-        consent: FlypaperConsent,
+        consent: HumbugConsent,
         client_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
@@ -47,7 +47,7 @@ class Reporter:
 
     def system_tags(self) -> List[str]:
         tags = [
-            "flypaper",
+            "humbug",
             "source:{}".format(self.name),
             "os:{}".format(self.system_information.os),
             "arch:{}".format(self.system_information.machine),
