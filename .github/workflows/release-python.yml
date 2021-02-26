@@ -1,4 +1,4 @@
-name: Release for Flypaper Python library
+name: Release for Humbug Python library
 
 on:
   push:
@@ -38,8 +38,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: "Flypaper Python library - ${{ github.ref }}"
+          release_name: "Humbug Python library - ${{ github.ref }}"
           body: |
-            Version ${{ github.ref }} of the Flypaper Python library
+            Version ${{ github.ref }} of the Humbug Python library
           draft: true
           prerelease: false
