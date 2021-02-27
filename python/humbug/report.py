@@ -33,6 +33,7 @@ class Reporter:
         bugout_token: Optional[str] = None,
         bugout_journal_id: Optional[str] = None,
         timeout_seconds: int = 10,
+        tags: Optional[List[str]] = None
     ):
         self.name = name
         self.consent = consent
@@ -44,6 +45,7 @@ class Reporter:
         self.bugout_token = bugout_token
         self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
+        self.additional_tags = tags
 
     def system_tags(self) -> List[str]:
         tags = [
@@ -68,6 +70,8 @@ class Reporter:
             return
         if self.bugout_token is None or self.bugout_journal_id is None:
             return
+        if self.additional_tags is not None:
+            report.tags += self.additional_tags
 
         try:
             report.tags = list(set(report.tags))
