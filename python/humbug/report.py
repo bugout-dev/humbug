@@ -4,8 +4,10 @@ Bugout knowledge bases.
 """
 from dataclasses import dataclass, field
 import textwrap
+import time
 import traceback
 from typing import List, Optional
+import uuid
 
 from bugout.app import Bugout
 
@@ -29,6 +31,7 @@ class Reporter:
         name: str,
         consent: HumbugConsent,
         client_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
         bugout_journal_id: Optional[str] = None,
@@ -37,6 +40,10 @@ class Reporter:
         self.name = name
         self.consent = consent
         self.client_id = client_id
+        if session_id is not None:
+            self.session_id = session_id
+        else:
+            self.session_id = str(uuid.uuid4())
         if system_information is None:
             system_information = generate_system_information()
         self.system_information = system_information
@@ -57,6 +64,7 @@ class Reporter:
                 self.system_information.python_version_minor,
             ),
             "python:{}".format(self.system_information.python_version),
+            "session:{}".format(self.session_id),
         ]
         if self.client_id is not None:
             tags.append("client:{}".format(self.client_id))
@@ -88,6 +96,11 @@ class Reporter:
         title = "{}: System information".format(self.name)
         content = textwrap.dedent(
             """
+            ### User timestamp
+            ```
+            {user_time}
+            ```
+
             ### OS
             ```
             {os}
@@ -105,6 +118,7 @@ class Reporter:
             {python_version}
             ```
         """.format(
+                user_time=int(time.time()),
                 os=self.system_information.os,
                 os_release=self.system_information.os_release,
                 machine=self.system_information.machine,
@@ -127,6 +141,11 @@ class Reporter:
         system_report = self.system_report(publish=False)
         error_content = textwrap.dedent(
             """
+            ### User timestamp
+            ```
+            {user_time}
+            ```
+
             ### Exception summary
             ```
             {error_summary}
@@ -137,6 +156,7 @@ class Reporter:
             {error_traceback}
             ```
         """.format(
+                user_time=int(time.time()),
                 error_summary=repr(error),
                 error_traceback="".join(
                     traceback.format_exception(
