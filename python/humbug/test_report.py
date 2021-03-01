@@ -1,4 +1,3 @@
-from os import system
 import unittest
 
 from . import consent, report
