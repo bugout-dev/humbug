@@ -52,7 +52,9 @@ class Reporter:
         self.bugout_token = bugout_token
         self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
-        self.additional_tags = tags
+        self.additional_tags = []
+        if tags is not None:
+            self.additional_tags = tags
 
     def system_tags(self) -> List[str]:
         tags = [
