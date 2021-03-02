@@ -101,9 +101,24 @@ class Reporter:
                 "timeout": self.timeout_seconds,
             }
             if wait:
-                self.bugout.create_entry(**kwargs)
+                self.bugout.create_entry(
+                    token=self.bugout_token,
+                    journal_id=self.bugout_journal_id,
+                    title=report.title,
+                    content=report.content,
+                    tags=report.tags,
+                    timeout=self.timeout_seconds,
+                )
             else:
-                report_future = self.executor.submit(self.bugout.create_entry, **kwargs)
+                report_future = self.executor.submit(
+                    self.bugout.create_entry,
+                    token=self.bugout_token,
+                    journal_id=self.bugout_journal_id,
+                    title=report.title,
+                    content=report.content,
+                    tags=report.tags,
+                    timeout=self.timeout_seconds,
+                )
                 self.report_futures.append(report_future)
         except:
             pass
