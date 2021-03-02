@@ -2,6 +2,8 @@
 This module implements all Humbug methods related to generating reports and publishing them to
 Bugout knowledge bases.
 """
+import atexit
+import concurrent.futures
 from dataclasses import dataclass, field
 import textwrap
 import time
@@ -52,6 +54,17 @@ class Reporter:
         self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
 
+        self.executor = concurrent.futures.ThreadPoolExecutor(
+            max_workers=1, thread_name_prefix="humbug_reporter"
+        )
+        self.report_futures: List[concurrent.futures.Future] = []
+        atexit.register(self.wait)
+
+    def wait(self) -> None:
+        concurrent.futures.wait(
+            self.report_futures, timeout=float(self.timeout_seconds)
+        )
+
     def system_tags(self) -> List[str]:
         tags = [
             "humbug",
@@ -71,7 +84,7 @@ class Reporter:
 
         return tags
 
-    def publish(self, report: Report) -> None:
+    def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
         if self.bugout_token is None or self.bugout_journal_id is None:
@@ -79,19 +92,24 @@ class Reporter:
 
         try:
             report.tags = list(set(report.tags))
-            self.bugout.create_entry(
-                self.bugout_token,
-                self.bugout_journal_id,
-                title=report.title,
-                content=report.content,
-                tags=report.tags,
-                timeout=self.timeout_seconds,
-            )
+            kwargs = {
+                "token": self.bugout_token,
+                "journal_id": self.bugout_journal_id,
+                "title": report.title,
+                "content": report.content,
+                "tags": report.tags,
+                "timeout": self.timeout_seconds,
+            }
+            if wait:
+                self.bugout.create_entry(**kwargs)
+            else:
+                report_future = self.executor.submit(self.bugout.create_entry, **kwargs)
+                self.report_futures.append(report_future)
         except:
             pass
 
     def system_report(
-        self, tags: Optional[List[str]] = None, publish: bool = True
+        self, tags: Optional[List[str]] = None, publish: bool = True, wait: bool = False
     ) -> Report:
         title = "{}: System information".format(self.name)
         content = textwrap.dedent(
@@ -130,12 +148,16 @@ class Reporter:
             report.tags.extend(tags)
 
         if publish:
-            self.publish(report)
+            self.publish(report, wait=wait)
 
         return report
 
     def error_report(
-        self, error: Exception, tags: Optional[List[str]] = None, publish: bool = True
+        self,
+        error: Exception,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
     ) -> Report:
         title = "{} - {}".format(self.name, type(error).__name__)
         system_report = self.system_report(publish=False)
@@ -183,6 +205,6 @@ class Reporter:
         report = Report(title=title, content=content, tags=tags)
 
         if publish:
-            self.publish(report)
+            self.publish(report, wait=wait)
 
         return report

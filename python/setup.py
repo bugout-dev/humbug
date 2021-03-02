@@ -6,7 +6,7 @@ with open("README.md") as ifp:
 
 setup(
     name="humbug",
-    version="0.1.3",
+    version="0.1.4",
     packages=find_packages(),
     install_requires=["bugout"],
     extras_require={
