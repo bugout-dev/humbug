@@ -52,3 +52,8 @@ def environment_variable_opt_out(
         return True
 
     return mechanism
+
+
+# yes and no are lists of values commonly used by environment variables to signify "yes" or "no"
+yes = ["1", "t", "y", "T", "Y", "true", "yes", "True", "Yes", "TRUE", "YES"]
+no = ["0", "f", "n", "F", "N", "false", "no", "False", "No", "FALSE", "NO"]
