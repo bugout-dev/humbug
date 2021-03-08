@@ -169,3 +169,6 @@ set to a value other than `1`, Humbug will send you any reports you have configu
 [This pull request](https://github.com/activeloopai/Hub/pull/624) shows how
 [Activeloop](https://www.activeloop.ai/) integrated Humbug into their popular
 [`Hub`](https://github.com/activeloopai/Hub) tool.
+
+This example shows how to use Humbug to record consent in a configuration file that the user
+can modify at will. It also shows how to add custom tags to your Humbug reports.
