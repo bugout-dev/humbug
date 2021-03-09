@@ -12,10 +12,13 @@ class HumbugConsent:
     HumbugConsent stores the client's consent settings.
     """
 
+    BUGGER_OFF = "BUGGER_OFF"
+
     def __init__(self, *mechanisms: Union[bool, ConsentMechanism]) -> None:
         if not mechanisms:
             mechanisms = (False,)
         self._mechanisms = mechanisms
+        self._bugger_off_mechanism = environment_variable_opt_out(self.BUGGER_OFF, yes)
 
     def check(self) -> bool:
         """
@@ -25,11 +28,13 @@ class HumbugConsent:
         for mechanism in self._mechanisms:
             if mechanism is True:
                 continue
-            elif mechanism is False:
+            if mechanism is False:
                 return False
             elif not cast(ConsentMechanism, mechanism)():
                 return False
-        return True
+        # If the user has set BUGGER_OFF=yes then do not assume consent. Otherwise, at this point,
+        # we can assume consent.
+        return self._bugger_off_mechanism()
 
 
 def environment_variable_opt_in(
