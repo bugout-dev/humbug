@@ -1,5 +1,6 @@
 import os
 import unittest
+from unittest import mock
 
 from . import consent
 
@@ -118,6 +119,16 @@ class TestHumbugConsent(unittest.TestCase):
             ),
         )
         self.assertFalse(consent_state.check())
+
+    @mock.patch.dict(os.environ, {consent.HumbugConsent.BUGGER_OFF: "true"})
+    def test_bugger_off(self):
+        consent_state = consent.HumbugConsent(True)
+        self.assertFalse(consent_state.check())
+
+    @mock.patch.dict(os.environ, {consent.HumbugConsent.BUGGER_OFF: "false"})
+    def test_bugger_on(self):
+        consent_state = consent.HumbugConsent(True)
+        self.assertTrue(consent_state.check())
 
 
 if __name__ == "__main__":
