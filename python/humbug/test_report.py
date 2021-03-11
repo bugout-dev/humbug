@@ -15,6 +15,31 @@ class TestReporter(unittest.TestCase):
         error = Exception("This exception is for use in a Humbug Python test")
         self.reporter.error_report(error, publish=False)
 
+    def test_custom_report_successful(self):
+        title = "a"
+        tags = ["b", "c", "d"]
+        content = "e"
+        report = self.reporter.custom_report(title, content, tags, publish=False)
+        self.assertEqual(report.title, title)
+        self.assertListEqual(report.tags, tags)
+        self.assertEqual(report.content, content)
+
+    def test_compound_report_successful(self):
+        title = "a"
+        tags = ["b", "c", "d"]
+        content = "e"
+        system_report = self.reporter.system_report(publish=False)
+        custom_report = self.reporter.custom_report(title, content, tags, publish=False)
+        title = "lol"
+        compound_report = self.reporter.compound_report(
+            [system_report, custom_report], title=title, tags=["d", "e"], publish=False
+        )
+        self.assertEqual(compound_report.title, title)
+        self.assertSetEqual(
+            set(compound_report.tags),
+            set(self.reporter.system_tags() + tags + ["d", "e"]),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
