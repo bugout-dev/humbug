@@ -92,14 +92,6 @@ class Reporter:
 
         try:
             report.tags = list(set(report.tags))
-            kwargs = {
-                "token": self.bugout_token,
-                "journal_id": self.bugout_journal_id,
-                "title": report.title,
-                "content": report.content,
-                "tags": report.tags,
-                "timeout": self.timeout_seconds,
-            }
             if wait:
                 self.bugout.create_entry(
                     token=self.bugout_token,
@@ -122,6 +114,25 @@ class Reporter:
                 self.report_futures.append(report_future)
         except:
             pass
+
+    def custom_report(
+        self,
+        title: str,
+        content: str,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        """
+        Generates (and optionally publishes) a custom report in which the title, tags, and content
+        are defined by the caller of this method.
+        """
+        if tags is None:
+            tags = []
+        report = Report(title=title, content=content, tags=tags)
+        if publish:
+            self.publish(report, wait=wait)
+        return report
 
     def system_report(
         self, tags: Optional[List[str]] = None, publish: bool = True, wait: bool = False
@@ -175,7 +186,6 @@ class Reporter:
         wait: bool = False,
     ) -> Report:
         title = "{} - {}".format(self.name, type(error).__name__)
-        system_report = self.system_report(publish=False)
         error_content = textwrap.dedent(
             """
             ### User timestamp
@@ -204,22 +214,36 @@ class Reporter:
                 ),
             )
         )
-        content = "\n\n".join(
-            [
-                "## Error information",
-                error_content,
-                "- - -",
-                "## System information",
-                system_report.content,
-            ]
-        )
         if tags is None:
             tags = []
-        tags.extend(system_report.tags)
+        tags.extend(self.system_tags())
 
-        report = Report(title=title, content=content, tags=tags)
+        report = Report(title=title, content=error_content, tags=tags)
 
         if publish:
             self.publish(report, wait=wait)
 
+        return report
+
+    def compound_report(
+        self,
+        reports: List[Report],
+        title: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        if tags is None:
+            tags = []
+        for component in reports:
+            tags.extend(component.tags)
+
+        if title is None:
+            title = "Composite report"
+
+        content = "\n\n- - -\n\n".join(component.content for component in reports)
+
+        report = Report(title=title, content=content, tags=tags)
+        if publish:
+            self.publish(report, wait=wait)
         return report
