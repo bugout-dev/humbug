@@ -5,6 +5,8 @@ Bugout knowledge bases.
 import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
+import os
+import pkg_resources
 import textwrap
 import time
 import traceback
@@ -223,6 +225,55 @@ class Reporter:
         if publish:
             self.publish(report, wait=wait)
 
+        return report
+
+    def env_report(
+        self,
+        title: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        """
+        Creates and optionally publishes a report containing the environment variables defined in
+        the current process.
+        """
+        if title is None:
+            title = "Environment variables"
+        if tags is None:
+            tags = []
+
+        env_vars = ["{}={}".format(key, value) for key, value in os.environ.items()]
+        content = "```\n{}\n```".format("\n".join(env_vars))
+
+        report = Report(title=title, content=content, tags=tags)
+        if publish:
+            self.publish(report, wait=wait)
+        return report
+
+    def packages_report(
+        self,
+        title: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        """
+        Creates and optionally publishes a report containing the packages (and versions of those
+        packages) available in the current Python process.
+        """
+        if title is None:
+            title = "Available packages"
+        if tags is None:
+            tags = []
+
+        available_packages = [
+            str(package_info) for package_info in pkg_resources.working_set
+        ]
+        content = "```\n{}\n```".format("\n".join(available_packages))
+        report = Report(title, content, tags)
+        if publish:
+            self.publish(report, wait=wait)
         return report
 
     def compound_report(

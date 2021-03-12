@@ -40,6 +40,16 @@ class TestReporter(unittest.TestCase):
             set(self.reporter.system_tags() + tags + ["d", "e"]),
         )
 
+    def test_env_report_successful(self):
+        tags = ["a", "b", "c"]
+        env_report = self.reporter.env_report(tags=tags, publish=False)
+        self.assertListEqual(env_report.tags, tags)
+
+    def test_packages_report_successful(self):
+        tags = ["a", "b", "c"]
+        pkg_report = self.reporter.packages_report(tags=tags, publish=False)
+        self.assertListEqual(pkg_report.tags, tags)
+
 
 if __name__ == "__main__":
     unittest.main()
