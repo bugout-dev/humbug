@@ -5,6 +5,7 @@ Bugout knowledge bases.
 import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
+from enum import Enum
 import os
 import pkg_resources
 import textwrap
@@ -29,6 +30,11 @@ class Report:
     tags: List[str] = field(default_factory=list)
 
 
+class Modes(Enum):
+    DEFAULT = 0
+    SYNCHRONOUS = 1
+
+
 class Reporter:
     def __init__(
         self,
@@ -40,6 +46,7 @@ class Reporter:
         bugout_token: Optional[str] = None,
         bugout_journal_id: Optional[str] = None,
         timeout_seconds: int = 10,
+        mode: Modes = Modes.DEFAULT,
     ):
         self.name = name
         self.consent = consent
@@ -56,16 +63,21 @@ class Reporter:
         self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
 
-        self.executor = concurrent.futures.ThreadPoolExecutor(
-            max_workers=1, thread_name_prefix="humbug_reporter"
-        )
         self.report_futures: List[concurrent.futures.Future] = []
         atexit.register(self.wait)
+
+        self.executor: Optional[concurrent.futures.Executor] = None
+        if mode == Modes.DEFAULT:
+            self.executor = concurrent.futures.ThreadPoolExecutor(
+                max_workers=1, thread_name_prefix="humbug_reporter"
+            )
 
     def wait(self) -> None:
         concurrent.futures.wait(
             self.report_futures, timeout=float(self.timeout_seconds)
         )
+        if self.executor is not None:
+            self.executor.shutdown()
 
     def system_tags(self) -> List[str]:
         tags = [
@@ -94,7 +106,7 @@ class Reporter:
 
         try:
             report.tags = list(set(report.tags))
-            if wait:
+            if wait or self.executor is None:
                 self.bugout.create_entry(
                     token=self.bugout_token,
                     journal_id=self.bugout_journal_id,
