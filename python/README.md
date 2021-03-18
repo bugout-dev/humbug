@@ -40,6 +40,9 @@ reporter = Reporter(
 )
 ```
 
+_Note that the `Reporter` object requires you to pass the token and journal ID from your
+`Usage Reports` integration from the [setup](../README.md#trying-it-out)._
+
 Now, anywhere in your code, import this report object and use it to publish reports to your
 Bugout journal.
 
@@ -108,7 +111,7 @@ consent = HumbugConsent(environment_variable_opt_in("MY_APP_CONSENT", ["true"]))
 reporter = Reporter(
     "<name of your project>",
     consent,
-    bugout_token="<your Bugout access token>",
+    bugout_token="<your Bugout token>",
     bugout_journal_id="<your Bugout journal ID>",
 )
 ```
