@@ -181,6 +181,7 @@ Release: `{os_release}`
         report = Report(title=title, content=content, tags=self.system_tags())
         if tags is not None:
             report.tags.extend(tags)
+        report.tags.append("type:system")
 
         if publish:
             self.publish(report, wait=wait)
@@ -221,6 +222,7 @@ Release: `{os_release}`
         )
         if tags is None:
             tags = []
+        tags.append("type:error")
         tags.extend(self.system_tags())
 
         report = Report(title=title, content=error_content, tags=tags)
@@ -245,6 +247,7 @@ Release: `{os_release}`
             title = "Environment variables"
         if tags is None:
             tags = []
+        tags.append("type:env")
 
         env_vars = ["{}={}".format(key, value) for key, value in os.environ.items()]
         content = "```\n{}\n```".format("\n".join(env_vars))
@@ -269,6 +272,7 @@ Release: `{os_release}`
             title = "Available packages"
         if tags is None:
             tags = []
+        tags.append("type:dependencies")
 
         available_packages = [
             str(package_info) for package_info in pkg_resources.working_set
