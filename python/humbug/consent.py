@@ -2,7 +2,7 @@
 This module implements Humbug's user consent mechanisms.
 """
 import os
-from typing import Callable, cast, Optional, Sequence, Union
+from typing import Callable, cast, Iterable, Optional, Sequence, Union
 
 ConsentMechanism = Callable[[], bool]
 
@@ -66,8 +66,8 @@ no = ["0", "f", "n", "F", "N", "false", "no", "False", "No", "FALSE", "NO"]
 
 def prompt_user(
     prompt: str,
-    accept_values: Optional[Sequence[str]] = None,
-    reject_values: Optional[Sequence[str]] = None,
+    accept_values: Iterable[str],
+    reject_values: Iterable[str],
     retries: int = 0,
 ) -> ConsentMechanism:
     if accept_values is None:
@@ -97,6 +97,6 @@ def prompt_user(
                         "To reject, enter one of: {}".format(", ".join(reject_values))
                     )
 
-        return result
+        return cast(bool, result)
 
     return mechanism
