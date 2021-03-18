@@ -37,18 +37,18 @@ class TestReporter(unittest.TestCase):
         self.assertEqual(compound_report.title, title)
         self.assertSetEqual(
             set(compound_report.tags),
-            set(self.reporter.system_tags() + tags + ["d", "e"]),
+            set(self.reporter.system_tags() + tags + ["d", "e", "type:system"]),
         )
 
     def test_env_report_successful(self):
         tags = ["a", "b", "c"]
         env_report = self.reporter.env_report(tags=tags, publish=False)
-        self.assertListEqual(env_report.tags, tags)
+        self.assertSetEqual(set(env_report.tags), set(tags + ["type:env"]))
 
     def test_packages_report_successful(self):
         tags = ["a", "b", "c"]
         pkg_report = self.reporter.packages_report(tags=tags, publish=False)
-        self.assertListEqual(pkg_report.tags, tags)
+        self.assertSetEqual(set(pkg_report.tags), set(tags + ["type:dependencies"]))
 
 
 if __name__ == "__main__":
