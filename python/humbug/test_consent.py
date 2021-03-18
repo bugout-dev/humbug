@@ -130,6 +130,37 @@ class TestHumbugConsent(unittest.TestCase):
         consent_state = consent.HumbugConsent(True)
         self.assertTrue(consent_state.check())
 
+    # Testing input in this way was inspired by: https://stackoverflow.com/a/6272100/13659585
+    @mock.patch.object(consent, "input")
+    def test_prompt_user_accept(self, user_input):
+        consent_checker = consent.HumbugConsent(
+            consent.prompt_user("Accept? (yes/no)", ["yes"], ["no"])
+        )
+        user_input.return_value = "yes"
+        self.assertTrue(consent_checker.check())
+        self.assertEqual(user_input.call_count, 1)
+
+    @mock.patch.object(consent, "input")
+    def test_prompt_user_reject(self, user_input):
+        consent_checker = consent.HumbugConsent(
+            consent.prompt_user("Accept? (yes/no)", ["yes"], ["no"])
+        )
+        user_input.return_value = "no"
+        self.assertFalse(consent_checker.check())
+        self.assertEqual(user_input.call_count, 1)
+
+    @mock.patch.object(consent, "print")
+    @mock.patch.object(consent, "input")
+    def test_prompt_user_invalid_responses(self, user_input, consent_print):
+        retries = 2
+        consent_checker = consent.HumbugConsent(
+            consent.prompt_user("Accept? (yes/no)", ["yes"], ["no"], retries=retries)
+        )
+        user_input.return_value = "lol"
+        self.assertFalse(consent_checker.check())
+        self.assertEqual(user_input.call_count, retries + 1)
+        self.assertEqual(consent_print.call_count, 3 * retries)
+
 
 if __name__ == "__main__":
     unittest.main()
