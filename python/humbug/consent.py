@@ -2,7 +2,7 @@
 This module implements Humbug's user consent mechanisms.
 """
 import os
-from typing import Callable, cast, Sequence, Union
+from typing import Callable, cast, Optional, Sequence, Union
 
 ConsentMechanism = Callable[[], bool]
 
@@ -62,3 +62,41 @@ def environment_variable_opt_out(
 # yes and no are lists of values commonly used by environment variables to signify "yes" or "no"
 yes = ["1", "t", "y", "T", "Y", "true", "yes", "True", "Yes", "TRUE", "YES"]
 no = ["0", "f", "n", "F", "N", "false", "no", "False", "No", "FALSE", "NO"]
+
+
+def prompt_user(
+    prompt: str,
+    accept_values: Optional[Sequence[str]] = None,
+    reject_values: Optional[Sequence[str]] = None,
+    retries: int = 0,
+) -> ConsentMechanism:
+    if accept_values is None:
+        accept_values = yes
+    if reject_values is None:
+        reject_values = no
+
+    def mechanism() -> bool:
+        result: Optional[bool] = None
+        attempts = 0
+        while result is None:
+            user_response = input(prompt)
+            if user_response in accept_values:
+                result = True
+            elif user_response in reject_values:
+                result = False
+            else:
+                if attempts >= retries:
+                    result = False
+                else:
+                    attempts += 1
+                    print("Invalid input: {}".format(user_response))
+                    print(
+                        "To accept, enter one of: {}".format(", ".join(accept_values))
+                    )
+                    print(
+                        "To reject, enter one of: {}".format(", ".join(reject_values))
+                    )
+
+        return result
+
+    return mechanism
