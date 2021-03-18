@@ -130,6 +130,7 @@ class TestHumbugConsent(unittest.TestCase):
         consent_state = consent.HumbugConsent(True)
         self.assertTrue(consent_state.check())
 
+    # Testing input in this way was inspired by: https://stackoverflow.com/a/6272100/13659585
     @mock.patch.object(consent, "input")
     def test_prompt_user_accept(self, user_input):
         consent_checker = consent.HumbugConsent(
