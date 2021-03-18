@@ -24,74 +24,33 @@ python setup.py install
 To add Humbug to your project, first create a Bugout access token and journal [following these
 instructions](../README.md#trying-it-out).
 
-All reports are generated (and published) by a Humbug reporter. Create a file called `report.py`
-somewhere in your project and paste the following code in there:
+You can follow the recipes below to integrate Humbug into your codebase:
+
+1. [Error reporting](./recipes/error_reporting.py)
+1. [System reporting](./recipes/system_reporting.py)
+
+All reports are generated (and published) by a Humbug reporter. By default, Humbug publishes all
+reports asynchronously and in the background. If you would like to publish selected reports
+synchronously, all reporter methods take a `wait=True` argument.
+
+If you plan to _only_ use a reporter synchronously or to do your own thread management, you can
+instantiate the reporter in synchronous mode:
 
 ```python
-from humbug.consent import HumbugConsent
-from humbug.report import Reporter
+from humbug.report import Reporter, Modes
 
-consent = HumbugConsent(True)
 reporter = Reporter(
-    "<name of your project>",
-    consent,
-    bugout_token="<your Bugout access token>",
-    bugout_journal_id="<your Bugout journal ID>",
+    "<name>",
+    client_id="<client_id>",
+    session_id="<session_id>",
+    bugout_token="<bugout_token>",
+    bugout_journal_id="<bugout_journal_id>",
+    mode=Modes.SYNCHRONOUS,
 )
 ```
 
-_Note that the `Reporter` object requires you to pass the token and journal ID from your
-`Usage Reports` integration from the [setup](../README.md#trying-it-out)._
-
-Now, anywhere in your code, import this report object and use it to publish reports to your
-Bugout journal.
-
-For example, to report an error:
-
-```python
-def do_something(*args):
-    try:
-        something(*args)
-    except Exception as e:
-        reporter.error_report(e)
-```
-
-If you want to report system information when a user imports your package, put the following code
-in your `__init__.py`:
-
-```python
-from .report import reporter
-
-reporter.system_report()
-```
-
-All reports have three parameters: `title`, `tags`, `content`. You can create a custom report using
-the `humbug.report.Report` class, and you can publish it to your knowledge base using the
-`humbug.report.Reporter.publish` method:
-
-```
-from humbug.report import Report
-
-report = Report(
-    title="<title of report>",
-    tags=["report:custom", "test"],
-    content="# Custom report\nThis is an example of a custom report, with markdown content.\n",
-)
-reporter.publish(report)
-```
-
-By default, Humbug publishes all reports asynchronously and in the background. If you would like to
-publish reports synchronously, set `wait=True` on `error_report`, `system_report`, or `publish`.
-
-For example, to publish the error report from above synchronously:
-
-```python
-def do_something(*args):
-    try:
-        something(*args)
-    except Exception as e:
-        reporter.error_report(e, wait=True)
-```
+Using Modes.SYNCHRONOUS in this manner skips the creation of the thread from which the reporter
+publishes reports.
 
 ### Consent
 
