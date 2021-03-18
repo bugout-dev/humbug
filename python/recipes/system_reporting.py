@@ -62,7 +62,7 @@ Now we create a Humbug reporter object to send reports.
 """
 session_id = str(uuid.uuid4())
 reporter = Reporter(
-    "recipes/error_reporting",
+    "recipes/system_reporting",
     consent,
     session_id=session_id,
     bugout_token=bugout_access_token,
