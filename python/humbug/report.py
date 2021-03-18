@@ -8,7 +8,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 import os
 import pkg_resources
-import textwrap
 import time
 import traceback
 from typing import List, Optional
@@ -152,36 +151,32 @@ class Reporter:
         self, tags: Optional[List[str]] = None, publish: bool = True, wait: bool = False
     ) -> Report:
         title = "{}: System information".format(self.name)
-        content = textwrap.dedent(
-            """
-            ### User timestamp
-            ```
-            {user_time}
-            ```
+        content = """### User timestamp
+```
+{user_time}
+```
 
-            ### OS
-            ```
-            {os}
-            ```
+### OS
+```
+{os}
+```
 
-            Release: `{os_release}`
+Release: `{os_release}`
 
-            ### Processor
-            ```
-            {machine}
-            ```
+### Processor
+```
+{machine}
+```
 
-            ### Python
-            ```
-            {python_version}
-            ```
-        """.format(
-                user_time=int(time.time()),
-                os=self.system_information.os,
-                os_release=self.system_information.os_release,
-                machine=self.system_information.machine,
-                python_version=self.system_information.python_version,
-            )
+### Python
+```
+{python_version}
+```""".format(
+            user_time=int(time.time()),
+            os=self.system_information.os,
+            os_release=self.system_information.os_release,
+            machine=self.system_information.machine,
+            python_version=self.system_information.python_version,
         )
         report = Report(title=title, content=content, tags=self.system_tags())
         if tags is not None:
@@ -200,33 +195,29 @@ class Reporter:
         wait: bool = False,
     ) -> Report:
         title = "{} - {}".format(self.name, type(error).__name__)
-        error_content = textwrap.dedent(
-            """
-            ### User timestamp
-            ```
-            {user_time}
-            ```
+        error_content = """### User timestamp
+```
+{user_time}
+```
 
-            ### Exception summary
-            ```
-            {error_summary}
-            ```
+### Exception summary
+```
+{error_summary}
+```
 
-            ### Traceback
-            ```
-            {error_traceback}
-            ```
-        """.format(
-                user_time=int(time.time()),
-                error_summary=repr(error),
-                error_traceback="".join(
-                    traceback.format_exception(
-                        etype=type(error),
-                        value=error,
-                        tb=error.__traceback__,
-                    )
-                ),
-            )
+### Traceback
+```
+{error_traceback}
+```""".format(
+            user_time=int(time.time()),
+            error_summary=repr(error),
+            error_traceback="".join(
+                traceback.format_exception(
+                    etype=type(error),
+                    value=error,
+                    tb=error.__traceback__,
+                )
+            ),
         )
         if tags is None:
             tags = []
