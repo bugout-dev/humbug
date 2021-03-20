@@ -1,5 +1,9 @@
 package humbug
 
+import (
+	bugout "github.com/bugout-dev/bugout-go/pkg"
+)
+
 type Report struct {
 	Title   string
 	Tags    []string
@@ -8,6 +12,9 @@ type Report struct {
 
 type Reporter interface {
 	Tags() []string
-	AddTags([]string)
 	Publish(Report) error
+}
+
+type HumbugReporter struct {
+	client bugout.BugoutClient
 }
