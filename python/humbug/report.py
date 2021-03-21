@@ -71,7 +71,7 @@ class Reporter:
             self.executor = concurrent.futures.ThreadPoolExecutor(
                 max_workers=1, thread_name_prefix="humbug_reporter"
             )
-        
+
         self.is_excepthook_set = False
 
     def wait(self) -> None:
@@ -312,7 +312,7 @@ Release: `{os_release}`
     def setup_excepthook(self, tags: Optional[List[str]] = None, publish: bool = True):
         """
         Adds error_report with python Exceptions.
-        Only one excepthook will be added to stack, no matter how many 
+        Only one excepthook will be added to stack, no matter how many
         times you call this method.
 
         Docs: https://docs.python.org/3/library/sys.html#sys.excepthook
