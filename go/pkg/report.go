@@ -1,6 +1,8 @@
 package humbug
 
 import (
+	"time"
+
 	bugout "github.com/bugout-dev/bugout-go/pkg"
 )
 
@@ -13,8 +15,19 @@ type Report struct {
 type Reporter interface {
 	Tags() []string
 	Publish(Report) error
+	SetTimeout(time.Duration)
 }
 
 type HumbugReporter struct {
-	client bugout.BugoutClient
+	clientID          string
+	sessionID         string
+	consent           Consent
+	bugoutClient      bugout.BugoutClient
+	bugoutAccessToken string
+	bugoutJournalID   string
+	tags              []string
+}
+
+func (reporter HumbugReporter) Tags() []string {
+	return []string{}
 }
