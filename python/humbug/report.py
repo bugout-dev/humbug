@@ -11,7 +11,7 @@ import pkg_resources
 import sys
 import time
 import traceback
-from typing import Any, Callable, List, Optional
+from typing import List, Optional
 import uuid
 
 from bugout.app import Bugout
