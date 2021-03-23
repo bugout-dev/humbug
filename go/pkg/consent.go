@@ -26,17 +26,17 @@ type HumbugConsent struct {
 
 // A set of values indicating a "no"
 var No map[string]bool = map[string]bool{
-	"0":     true,
-	"f":     true,
-	"n":     true,
-	"F":     true,
-	"N":     true,
-	"false": true,
-	"no":    true,
-	"False": true,
-	"No":    true,
-	"FALSE": true,
-	"NO":    true,
+	"0":     false,
+	"f":     false,
+	"n":     false,
+	"F":     false,
+	"N":     false,
+	"false": false,
+	"no":    false,
+	"False": false,
+	"No":    false,
+	"FALSE": false,
+	"NO":    false,
 }
 
 // A set of values indicating a "yes"

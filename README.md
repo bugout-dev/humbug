@@ -10,7 +10,7 @@ day one.
 Humbug is currently available in the following programming languages:
 
 1. [Python](./python)
-2. Go (coming soon)
+2. [Go](./go)
 3. Javascript (coming soon)
 
 If you would like support for another programming language, please
