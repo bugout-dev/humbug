@@ -83,17 +83,22 @@ func (reporter *HumbugReporter) Publish(report Report) error {
 		// set appropriately.
 		recover()
 	}()
-	context := spire.EntryContext{
-		ContextType: "humbug",
-		ContextID:   reporter.sessionID,
+	var err error
+	userHasConsented := reporter.consent.Check()
+	if userHasConsented {
+		context := spire.EntryContext{
+			ContextType: "humbug",
+			ContextID:   reporter.sessionID,
+		}
+		tags := MergeTags(report.Tags, reporter.Tags())
+		_, err = reporter.bugoutClient.Spire.CreateEntry(reporter.bugoutAccessToken, reporter.bugoutJournalID, report.Title, report.Content, tags, context)
 	}
-	tags := MergeTags(report.Tags, reporter.Tags())
-	_, err := reporter.bugoutClient.Spire.CreateEntry(reporter.bugoutAccessToken, reporter.bugoutJournalID, report.Title, report.Content, tags, context)
 	return err
 }
 
 func CreateHumbugReporter(consent Consent, clientID string, sessionID string, bugoutAccessToken string, bugoutJournalID string) (*HumbugReporter, error) {
 	reporter := HumbugReporter{
+		consent:           consent,
 		clientID:          clientID,
 		sessionID:         sessionID,
 		bugoutAccessToken: bugoutAccessToken,
