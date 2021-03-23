@@ -15,10 +15,7 @@ func main() {
 	bugoutAccessToken := os.Getenv("BUGOUT_ACCESS_TOKEN")
 	bugoutJournalID := os.Getenv("BUGOUT_JOURNAL_ID")
 
-	reporter, err := humbug.CreateHumbugReporter(consent, clientID, sessionID, bugoutAccessToken, bugoutJournalID)
-	if err != nil {
-		panic(err)
-	}
+	reporter, _ := humbug.CreateHumbugReporter(consent, clientID, sessionID, bugoutAccessToken, bugoutJournalID)
 
 	report := humbug.Report{
 		Title:   "test",

@@ -56,6 +56,13 @@ func MergeTags(tags0, tags1 []string) []string {
 }
 
 func (reporter *HumbugReporter) Publish(report Report) error {
+	defer func() {
+		// TODO(zomglings): For now, we only recover here so panicked Publish calls do not have an
+		// effect on any program using the Humbug library. In the future, there should be an option
+		// of writing log messages if an environment variable (e.g. HUMBUG_LOG_LEVEL) has been
+		// set appropriately.
+		recover()
+	}()
 	context := spire.EntryContext{
 		ContextType: "humbug",
 		ContextID:   reporter.sessionID,
