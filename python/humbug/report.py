@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import os
 import pkg_resources
+import sys
 import time
 import traceback
 from typing import List, Optional
@@ -70,6 +71,8 @@ class Reporter:
             self.executor = concurrent.futures.ThreadPoolExecutor(
                 max_workers=1, thread_name_prefix="humbug_reporter"
             )
+
+        self.is_excepthook_set = False
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -305,3 +308,22 @@ Release: `{os_release}`
         if publish:
             self.publish(report, wait=wait)
         return report
+
+    def setup_excepthook(self, tags: Optional[List[str]] = None, publish: bool = True):
+        """
+        Adds error_report with python Exceptions.
+        Only one excepthook will be added to stack, no matter how many
+        times you call this method.
+
+        Docs: https://docs.python.org/3/library/sys.html#sys.excepthook
+        """
+        if not self.is_excepthook_set:
+            original_excepthook = sys.excepthook
+
+            def _hook(exception_type, exception_instance, traceback):
+                self.error_report(error=exception_instance, tags=tags, publish=publish)
+                original_excepthook(exception_type, exception_instance, traceback)
+
+            sys.excepthook = _hook
+
+            self.is_excepthook_set = True
