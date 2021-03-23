@@ -1,19 +1,17 @@
 package humbug
 
 import (
+	"fmt"
+
 	bugout "github.com/bugout-dev/bugout-go/pkg"
 	"github.com/bugout-dev/bugout-go/pkg/spire"
 )
 
-type Report struct {
-	Title   string
-	Tags    []string
-	Content string
-}
-
 type Reporter interface {
+	Tag(key string, modifier string)
+	Untag(key string, modifier string)
 	Tags() []string
-	Publish(Report) error
+	Publish(report Report) error
 }
 
 type HumbugReporter struct {
@@ -24,6 +22,28 @@ type HumbugReporter struct {
 	bugoutAccessToken string
 	bugoutJournalID   string
 	tags              map[string]bool
+}
+
+func (reporter *HumbugReporter) Tag(key, modifier string) {
+	if reporter.tags == nil {
+		reporter.tags = make(map[string]bool)
+	}
+	tag := key
+	if modifier != "" {
+		tag = fmt.Sprintf("%s:%s", key, modifier)
+	}
+	reporter.tags[tag] = true
+}
+
+func (reporter *HumbugReporter) Untag(key, modifier string) {
+	if reporter.tags == nil {
+		reporter.tags = make(map[string]bool)
+	}
+	tag := key
+	if modifier != "" {
+		tag = fmt.Sprintf("%s:%s", key, modifier)
+	}
+	reporter.tags[tag] = false
 }
 
 func (reporter *HumbugReporter) Tags() []string {
@@ -79,6 +99,12 @@ func CreateHumbugReporter(consent Consent, clientID string, sessionID string, bu
 		bugoutAccessToken: bugoutAccessToken,
 		bugoutJournalID:   bugoutJournalID,
 	}
+
+	reporter.Tag("session", sessionID)
+	if clientID != "" {
+		reporter.Tag("client", clientID)
+	}
+
 	bugoutClient, err := bugout.ClientFromEnv()
 	if err != nil {
 		return &reporter, err
