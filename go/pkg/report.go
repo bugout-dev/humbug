@@ -64,3 +64,18 @@ func (reporter *HumbugReporter) Publish(report Report) error {
 	_, err := reporter.bugoutClient.Spire.CreateEntry(reporter.bugoutAccessToken, reporter.bugoutJournalID, report.Title, report.Content, tags, context)
 	return err
 }
+
+func CreateHumbugReporter(consent Consent, clientID string, sessionID string, bugoutAccessToken string, bugoutJournalID string) (*HumbugReporter, error) {
+	reporter := HumbugReporter{
+		clientID:          clientID,
+		sessionID:         sessionID,
+		bugoutAccessToken: bugoutAccessToken,
+		bugoutJournalID:   bugoutJournalID,
+	}
+	bugoutClient, err := bugout.ClientFromEnv()
+	if err != nil {
+		return &reporter, err
+	}
+	reporter.bugoutClient = bugoutClient
+	return &reporter, nil
+}

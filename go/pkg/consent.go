@@ -74,7 +74,7 @@ func EnvironmentVariableConsent(envVar string, valueConsentMap map[string]bool, 
 	}
 }
 
-func (consent HumbugConsent) Check() bool {
+func (consent *HumbugConsent) Check() bool {
 	shortCircuit := EnvironmentVariableConsent(ShortCircuitVar, Yes, false)
 	if shortCircuit() {
 		return false
@@ -85,4 +85,8 @@ func (consent HumbugConsent) Check() bool {
 		}
 	}
 	return true
+}
+
+func CreateHumbugConsent(mechanisms ...ConsentMechanism) *HumbugConsent {
+	return &HumbugConsent{Mechanisms: mechanisms}
 }
