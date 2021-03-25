@@ -100,13 +100,14 @@ for entry in entries:
 
 timestamped_entries.sort(key=lambda i: i[0])
 
-last_timestamp, last_entry = timestamped_entries[0]
-render_entry(last_entry)
+if timestamped_entries:
+    last_timestamp, last_entry = timestamped_entries[0]
+    render_entry(last_entry)
 
-for timestamp, entry in timestamped_entries[1:]:
-    print("")
-    print("    gap: {}".format(timestamp - last_timestamp))
-    print("")
-    render_entry(entry)
-    last_timestamp = timestamp
-    last_entry = entry
+    for timestamp, entry in timestamped_entries[1:]:
+        print("")
+        print("    gap: {}".format(timestamp - last_timestamp))
+        print("")
+        render_entry(entry)
+        last_timestamp = timestamp
+        last_entry = entry
