@@ -1,0 +1,40 @@
+{% set name = "idna" %}
+{% set version = "3.1" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: c5b02147e01ea9920e6b0a3f1f7bb833612d507592c837a6c49552768f4054e1
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - bugout-py = bugout.__main__:main
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python
+
+test:
+  imports:
+    - idna
+
+about:
+  home: "https://github.com/kjd/idna"
+  license: BSD
+  license_family: BSD
+  license_file: 
+  summary: "Internationalized Domain Names in Applications (IDNA)"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

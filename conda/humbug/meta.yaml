@@ -1,0 +1,40 @@
+{% set name = "humbug" %}
+{% set version = "0.1.14" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: a9235ab0429245010776e086fdfad266f63399a034f67bb813f15a357dfb8cd6
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+
+requirements:
+  host:
+    - bugout
+    - pip
+    - python
+  run:
+    - bugout
+    - python
+
+test:
+  imports:
+    - humbug
+
+about:
+  home: "https://github.com/bugout-dev/humbug"
+  license: Apache Software
+  license_family: APACHE
+  license_file: 
+  summary: "Humbug: Do you build developer tools? Humbug helps you know your users."
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
