@@ -1,0 +1,36 @@
+{% set name = "typing" %}
+{% set version = "3.7.4.3" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 1187fb9c82fd670d10aa07bbb6cfcfe4bdda42d6fab8d5134f04e8c4d0b71cc9
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - chardetect = chardet.cli.chardetect:main
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python
+
+about:
+  home: "https://docs.python.org/3/library/typing.html"
+  license: Python Software Foundation
+  license_family: OTHER
+  license_file: 
+  summary: "Type Hints for Python"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

@@ -1,0 +1,38 @@
+{% set name = "setuptools" %}
+{% set version = "54.2.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: aa9c24fb83a9116b8d425e53bec24c7bfdbffc313c2159f9ed036d4a6dd32d7d
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - chardetect = chardet.cli.chardetect:main
+
+requirements:
+  host:
+    - pip
+    - python
+    - setuptools
+  run:
+    - python
+    - setuptools
+
+about:
+  home: The package home page
+  license: MIT
+  license_family: MIT
+  license_file: 
+  summary: "Easily download, build, install, upgrade, and uninstall Python packages"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

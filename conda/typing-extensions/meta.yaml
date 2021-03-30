@@ -1,0 +1,38 @@
+{% set name = "typing-extensions" %}
+{% set version = "3.7.4.3" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 99d4073b617d30288f569d3f13d2bd7548c3a7e4c8de87db09a9d29bb3a4a60c
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - chardetect = chardet.cli.chardetect:main
+
+requirements:
+  host:
+    - pip
+    - python
+    - typing >=3.7.4
+  run:
+    - python
+    - typing >=3.7.4
+
+about:
+  home: "https://github.com/python/typing/blob/master/typing_extensions/README.rst"
+  license: Python Software Foundation
+  license_family: OTHER
+  license_file: 
+  summary: "Backported and Experimental Type Hints for Python 3.5+"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

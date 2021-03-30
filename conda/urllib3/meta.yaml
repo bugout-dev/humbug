@@ -1,0 +1,46 @@
+{% set name = "urllib3" %}
+{% set version = "1.26.4" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: e7b021f7241115872f92f43c6508082facffbd1c048e3c6e2bb9c2a157e28937
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - bugout-py = bugout.__main__:main
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python
+
+test:
+  imports:
+    - urllib3
+    - urllib3.contrib
+    - urllib3.contrib._securetransport
+    - urllib3.packages
+    - urllib3.packages.backports
+    - urllib3.packages.ssl_match_hostname
+    - urllib3.util
+
+about:
+  home: "https://urllib3.readthedocs.io/"
+  license: MIT
+  license_family: MIT
+  license_file: 
+  summary: "HTTP library with thread-safe connection pooling, file post, and more."
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here

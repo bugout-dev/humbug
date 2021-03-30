@@ -1,0 +1,44 @@
+{% set name = "chardet" %}
+{% set version = "4.0.0" %}
+
+package:
+  name: "{{ name|lower }}"
+  version: "{{ version }}"
+
+source:
+  url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  sha256: 0d6f53a15db4120f2b08c94f11e7d93d2c911ee118b6b30a04ec3ee8310179fa
+
+build:
+  number: 0
+  script: "{{ PYTHON }} -m pip install . -vv"
+  entry_points:
+    - chardetect = chardet.cli.chardetect:main
+
+requirements:
+  host:
+    - pip
+    - python
+  run:
+    - python
+
+test:
+  imports:
+    - chardet
+    - chardet.cli
+    - chardet.metadata
+  commands:
+    - chardetect --help
+
+about:
+  home: "https://github.com/chardet/chardet"
+  license: "GNU Library or Lesser General Public (LGPL)"
+  license_family: LGPL
+  license_file: 
+  summary: "Universal encoding detector for Python 2 and 3"
+  doc_url: 
+  dev_url: 
+
+extra:
+  recipe-maintainers:
+    - your-github-id-here
