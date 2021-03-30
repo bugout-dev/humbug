@@ -6,6 +6,7 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
+import inspect
 import os
 import pkg_resources
 import sys
@@ -321,8 +322,14 @@ Release: `{os_release}`
             original_excepthook = sys.excepthook
 
             def _hook(exception_type, exception_instance, traceback):
-                self.error_report(error=exception_instance, tags=tags, publish=publish)
                 original_excepthook(exception_type, exception_instance, traceback)
+
+                module = inspect.getmodule(exception_type)
+                if module is not None:
+                    if not module.__name__.startswith(self.name):
+                        return
+
+                self.error_report(error=exception_instance, tags=tags, publish=publish)
 
             sys.excepthook = _hook
 
