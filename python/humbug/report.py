@@ -310,7 +310,12 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
         return report
 
-    def setup_excepthook(self, tags: Optional[List[str]] = None, publish: bool = True):
+    def setup_excepthook(
+        self,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        modules_whitelist: Optional[List[str]] = None,
+    ) -> None:
         """
         Adds error_report with python Exceptions.
         Only one excepthook will be added to stack, no matter how many
@@ -321,13 +326,18 @@ Release: `{os_release}`
         if not self.is_excepthook_set:
             original_excepthook = sys.excepthook
 
+            if modules_whitelist is None:
+                modules_whitelist = []
+            modules_whitelist.append(self.name)
+
             def _hook(exception_type, exception_instance, traceback):
                 original_excepthook(exception_type, exception_instance, traceback)
 
                 module = inspect.getmodule(exception_type)
                 if module is not None:
-                    if not module.__name__.startswith(self.name):
-                        return
+                    for module_whitelist in modules_whitelist:
+                        if not module.__name__.startswith(module_whitelist):
+                            return
 
                 self.error_report(error=exception_instance, tags=tags, publish=publish)
 
