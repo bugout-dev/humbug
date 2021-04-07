@@ -332,16 +332,13 @@ Release: `{os_release}`
         """
         Excepthook for ipython, works with jupiter notebook.
         """
-        self.system_report(publish=True, tags=tags)
-        try:
-            ipython_shell = get_ipython()  # type: ignore
-            old_showtraceback = ipython_shell.showtraceback
+        ipython_shell = get_ipython()  # type: ignore
+        old_showtraceback = ipython_shell.showtraceback
 
-            def showtraceback(*args, **kwargs):
-                _, exc_instance, _ = sys.exc_info()
-                self.error_report(exc_instance, tags=tags, publish=True)
-                old_showtraceback(*args, **kwargs)
+        def showtraceback(*args, **kwargs):
+            _, exc_instance, _ = sys.exc_info()
+            self.error_report(exc_instance, tags=tags, publish=True)
+            old_showtraceback(*args, **kwargs)
 
-            ipython_shell.showtraceback = showtraceback
-        except NameError:
-            self.setup_excepthook(publish=True, tags=tags)
+        ipython_shell.showtraceback = showtraceback
+        self.setup_excepthook(publish=True, tags=tags)
