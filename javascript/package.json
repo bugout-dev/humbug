@@ -1,0 +1,30 @@
+{
+  "name": "humbug",
+  "version": "0.0.1",
+  "description": "Humbug: Do you build developer tools? Humbug helps you know your users.",
+  "main": "lib/report.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "node lib/index.js",
+    "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bugout-dev/humbug.git"
+  },
+  "keywords": [
+    "bugout",
+    "crash",
+    "reports"
+  ],
+  "author": "Bugout.dev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bugout-dev/humbug/issues"
+  },
+  "homepage": "https://github.com/bugout-dev/humbug#readme",
+  "dependencies": {
+    "axios": "^0.21.1",
+    "typescript": "^4.2.3"
+  }
+}
