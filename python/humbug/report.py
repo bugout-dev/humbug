@@ -11,16 +11,26 @@ import pkg_resources
 import sys
 import time
 import traceback
-from typing import List, Optional
+from typing import List, Optional, Union
 import uuid
 
-from bugout.app import Bugout
+import requests
 
 from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
     generate as generate_system_information,
 )
+
+
+DEFAULT_URL = "https://spire.bugout.dev"
+
+
+class BugoutUnexpectedStatusResponse(Exception):
+    """
+    Raised when Bugout server response return incorrect status.
+    """
+
 
 
 @dataclass
@@ -34,12 +44,23 @@ class Modes(Enum):
     DEFAULT = 0
     SYNCHRONOUS = 1
 
+def make_request(method: str, url: str, **kwargs):
+    response_body = None
+    try:    
+        r = requests.request(method, url=url, **kwargs)
+        r.raise_for_status()
+    except Exception as e:
+        raise BugoutUnexpectedStatusResponse(f"Exception {str(e)}")
+    return r.status_code
+
+
 
 class Reporter:
     def __init__(
         self,
         name: str,
         consent: HumbugConsent,
+        url: Optional[str] = None,
         client_id: Optional[str] = None,
         session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
@@ -48,6 +69,9 @@ class Reporter:
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
     ):
+        if url is None:
+            url = DEFAULT_URL
+        self.url = url
         self.name = name
         self.consent = consent
         self.client_id = client_id
@@ -58,9 +82,7 @@ class Reporter:
         if system_information is None:
             system_information = generate_system_information()
         self.system_information = system_information
-        self.bugout = Bugout()
         self.bugout_token = bugout_token
-        self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
 
         self.report_futures: List[concurrent.futures.Future] = []
@@ -73,6 +95,30 @@ class Reporter:
             )
 
         self.is_excepthook_set = False
+    
+    def create_report(self,
+        token: Union[str, uuid.UUID],
+        title: str,
+        content: str,
+        tags: List[str] = [],
+        **kwargs
+    ):
+        method = "POST"
+        report_path = f"humbug/reports"
+        json = {
+            "title": title,
+            "content": content,
+            "tags": tags
+        }
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+        url = f"{self.url.rstrip('/')}/{report_path.rstrip('/')}"
+        try:
+            result = make_request(method=method, url=url, timeout=self.timeout_seconds, **kwargs)
+            print(result)
+        except Exception as err:
+            raise BugoutUnexpectedStatusResponse(f"Exception {str(err)}")
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -103,15 +149,14 @@ class Reporter:
     def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
-        if self.bugout_token is None or self.bugout_journal_id is None:
+        if self.bugout_token is None:
             return
 
         try:
             report.tags = list(set(report.tags))
             if wait or self.executor is None:
-                self.bugout.create_entry(
+                self.create_report(
                     token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
                     title=report.title,
                     content=report.content,
                     tags=report.tags,
@@ -119,9 +164,8 @@ class Reporter:
                 )
             else:
                 report_future = self.executor.submit(
-                    self.bugout.create_entry,
+                    self.create_report,
                     token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
                     title=report.title,
                     content=report.content,
                     tags=report.tags,
