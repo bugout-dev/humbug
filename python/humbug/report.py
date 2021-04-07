@@ -327,3 +327,18 @@ Release: `{os_release}`
             sys.excepthook = _hook
 
             self.is_excepthook_set = True
+
+    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None):
+        """
+        Excepthook for ipython, works with jupiter notebook.
+        """
+        ipython_shell = get_ipython()  # type: ignore
+        old_showtraceback = ipython_shell.showtraceback
+
+        def showtraceback(*args, **kwargs):
+            _, exc_instance, _ = sys.exc_info()
+            self.error_report(exc_instance, tags=tags, publish=True)
+            old_showtraceback(*args, **kwargs)
+
+        ipython_shell.showtraceback = showtraceback
+        self.setup_excepthook(publish=True, tags=tags)
