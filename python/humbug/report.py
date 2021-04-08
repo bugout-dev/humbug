@@ -6,6 +6,7 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
+from logging import LogRecord
 import os
 import pkg_resources
 import sys
@@ -284,6 +285,44 @@ Release: `{os_release}`
         report = Report(title, content, tags)
         if publish:
             self.publish(report, wait=wait)
+        return report
+
+    def logging_report(
+        self,
+        record: LogRecord,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        title = "{} - Logging error - {}".format(self.name, record.module)
+        error_content = """### User timestamp
+```
+{user_time}
+```
+
+### Module name
+```
+{module_name}
+```
+
+### Error message
+```
+{error_message}
+```""".format(
+            user_time=int(time.time()),
+            module_name=record.module,
+            error_message=record.getMessage(),
+        )
+        if tags is None:
+            tags = []
+        tags.append("type:logging")
+        tags.extend(self.system_tags())
+
+        report = Report(title=title, content=error_content, tags=tags)
+
+        if publish:
+            self.publish(report, wait=wait)
+
         return report
 
     def compound_report(
