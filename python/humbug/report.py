@@ -32,7 +32,6 @@ class BugoutUnexpectedStatusResponse(Exception):
     """
 
 
-
 @dataclass
 class Report:
     title: str
@@ -44,15 +43,13 @@ class Modes(Enum):
     DEFAULT = 0
     SYNCHRONOUS = 1
 
+
 def make_request(method: str, url: str, **kwargs):
-    response_body = None
-    try:    
+    try:
         r = requests.request(method, url=url, **kwargs)
         r.raise_for_status()
     except Exception as e:
         raise BugoutUnexpectedStatusResponse(f"Exception {str(e)}")
-    return r.status_code
-
 
 
 class Reporter:
@@ -65,7 +62,6 @@ class Reporter:
         session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
-        bugout_journal_id: Optional[str] = None,
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
     ):
@@ -95,30 +91,23 @@ class Reporter:
             )
 
         self.is_excepthook_set = False
-    
-    def create_report(self,
+
+    def create_report(
+        self,
         token: Union[str, uuid.UUID],
         title: str,
         content: str,
         tags: List[str] = [],
-        **kwargs
+        **kwargs,
     ):
         method = "POST"
         report_path = f"humbug/reports"
-        json = {
-            "title": title,
-            "content": content,
-            "tags": tags
-        }
+        json = {"title": title, "content": content, "tags": tags}
         headers = {
             "Authorization": f"Bearer {token}",
         }
         url = f"{self.url.rstrip('/')}/{report_path.rstrip('/')}"
-        try:
-            result = make_request(method=method, url=url, timeout=self.timeout_seconds, **kwargs)
-            print(result)
-        except Exception as err:
-            raise BugoutUnexpectedStatusResponse(f"Exception {str(err)}")
+        make_request(method, url=url, headers=headers, json=json, **kwargs)
 
     def wait(self) -> None:
         concurrent.futures.wait(
