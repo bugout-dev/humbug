@@ -1,11 +1,20 @@
 package humbug
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-
-	bugout "github.com/bugout-dev/bugout-go/pkg"
-	"github.com/bugout-dev/bugout-go/pkg/spire"
+	"net/http"
+	"strings"
 )
+
+defaultBaseUrl = "https://spire.bugout.dev"
+
+type reportRequest struct {
+	Title       string   `json:"title"`
+	Content     string   `json:"content"`
+	Tags        []string `json:"tags"`
+}
 
 type Reporter interface {
 	Tag(key string, modifier string)
@@ -18,9 +27,7 @@ type HumbugReporter struct {
 	clientID          string
 	sessionID         string
 	consent           Consent
-	bugoutClient      bugout.BugoutClient
 	bugoutAccessToken string
-	bugoutJournalID   string
 	tags              map[string]bool
 }
 
@@ -86,34 +93,50 @@ func (reporter *HumbugReporter) Publish(report Report) error {
 	var err error
 	userHasConsented := reporter.consent.Check()
 	if userHasConsented {
-		context := spire.EntryContext{
-			ContextType: "humbug",
-			ContextID:   reporter.sessionID,
-		}
 		tags := MergeTags(report.Tags, reporter.Tags())
-		_, err = reporter.bugoutClient.Spire.CreateEntry(reporter.bugoutAccessToken, reporter.bugoutJournalID, report.Title, report.Content, tags, context)
+		entriesRoute := ("%s/humbug/reports", reporter.baseUrl)
+		requestBody := reportRequest{
+			{
+			Title:   report.title,
+			Content: report.content,
+			Tags:    report.tags,
+		}
+		requestBuffer := new(bytes.Buffer)
+		encodeErr := json.NewEncoder(requestBuffer).Encode(requestBody)
+		
+		if encodeErr != nil {
+			return Entry{}, encodeErr
+		}
+		request, requestErr := http.NewRequest("POST", entriesRoute, requestBuffer)
+		if requestErr != nil {
+			return Entry{}, requestErr
+		}
+		request.Header.Add("Content-Type", "application/json")
+		request.Header.Add("Accept", "application/json")
+		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.token))
+	
+		response, responseErr := client.HTTPClient.Do(request)
+
 	}
-	return err
+	return responseErr
 }
 
-func CreateHumbugReporter(consent Consent, clientID string, sessionID string, bugoutAccessToken string, bugoutJournalID string) (*HumbugReporter, error) {
+func CreateHumbugReporter(baseUrl string, consent Consent, clientID string, sessionID string, bugoutAccessToken string) (*HumbugReporter, error) {
 	reporter := HumbugReporter{
 		consent:           consent,
 		clientID:          clientID,
 		sessionID:         sessionID,
-		bugoutAccessToken: bugoutAccessToken,
-		bugoutJournalID:   bugoutJournalID,
+		bugoutAccessToken: bugoutAccessToken
 	}
 
 	reporter.Tag("session", sessionID)
+	if baseUrl != "" {
+		reporter.baseUrl := baseUrl
+	} else {
+		reporter.baseUrl := defaultBaseUrl
+	}
 	if clientID != "" {
 		reporter.Tag("client", clientID)
 	}
-
-	bugoutClient, err := bugout.ClientFromEnv()
-	if err != nil {
-		return &reporter, err
-	}
-	reporter.bugoutClient = bugoutClient
 	return &reporter, nil
 }
