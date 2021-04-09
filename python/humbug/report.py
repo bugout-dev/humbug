@@ -6,7 +6,9 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
-from logging import LogRecord
+
+# from logging import LogRecord
+import logging
 import os
 import pkg_resources
 import sys
@@ -287,9 +289,32 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
         return report
 
+    def compound_report(
+        self,
+        reports: List[Report],
+        title: Optional[str] = None,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        if tags is None:
+            tags = []
+        for component in reports:
+            tags.extend(component.tags)
+
+        if title is None:
+            title = "Composite report"
+
+        content = "\n\n- - -\n\n".join(component.content for component in reports)
+
+        report = Report(title=title, content=content, tags=tags)
+        if publish:
+            self.publish(report, wait=wait)
+        return report
+
     def logging_report(
         self,
-        record: LogRecord,
+        record: logging.LogRecord,
         tags: Optional[List[str]] = None,
         publish: bool = True,
         wait: bool = False,
@@ -325,30 +350,25 @@ Release: `{os_release}`
 
         return report
 
-    def compound_report(
+    def setup_loggerhook(
         self,
-        reports: List[Report],
-        title: Optional[str] = None,
+        levels: list,
         tags: Optional[List[str]] = None,
         publish: bool = True,
-        wait: bool = False,
-    ) -> Report:
-        if tags is None:
-            tags = []
-        for component in reports:
-            tags.extend(component.tags)
+    ) -> None:
+        old_factory = logging.getLogRecordFactory()
 
-        if title is None:
-            title = "Composite report"
+        def record_factory(*args, **kwargs):
+            record = old_factory(*args, **kwargs)
+            if record.levelno in levels:
+                self.logging_report(record=record, tags=tags, publish=publish)
+            return record
 
-        content = "\n\n- - -\n\n".join(component.content for component in reports)
+        logging.setLogRecordFactory(record_factory)
 
-        report = Report(title=title, content=content, tags=tags)
-        if publish:
-            self.publish(report, wait=wait)
-        return report
-
-    def setup_excepthook(self, tags: Optional[List[str]] = None, publish: bool = True):
+    def setup_excepthook(
+        self, tags: Optional[List[str]] = None, publish: bool = True
+    ) -> None:
         """
         Adds error_report with python Exceptions.
         Only one excepthook will be added to stack, no matter how many
@@ -367,7 +387,7 @@ Release: `{os_release}`
 
             self.is_excepthook_set = True
 
-    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None):
+    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None) -> None:
         """
         Excepthook for ipython, works with jupiter notebook.
         """
