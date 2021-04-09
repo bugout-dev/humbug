@@ -352,7 +352,7 @@ Release: `{os_release}`
 
     def setup_loggerhook(
         self,
-        levels: list,
+        level: int,
         tags: Optional[List[str]] = None,
         publish: bool = True,
     ) -> None:
@@ -360,7 +360,7 @@ Release: `{os_release}`
 
         def record_factory(*args, **kwargs):
             record = old_factory(*args, **kwargs)
-            if record.levelno in levels:
+            if record.levelno >= level:
                 self.logging_report(record=record, tags=tags, publish=publish)
             return record
 
