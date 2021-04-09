@@ -76,6 +76,7 @@ class Reporter:
             )
 
         self.is_excepthook_set = False
+        self.is_loggerhook_set = False
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -356,15 +357,18 @@ Release: `{os_release}`
         tags: Optional[List[str]] = None,
         publish: bool = True,
     ) -> None:
-        old_factory = logging.getLogRecordFactory()
+        if not self.is_loggerhook_set:
+            old_factory = logging.getLogRecordFactory()
 
-        def record_factory(*args, **kwargs):
-            record = old_factory(*args, **kwargs)
-            if record.levelno >= level:
-                self.logging_report(record=record, tags=tags, publish=publish)
-            return record
+            def record_factory(*args, **kwargs):
+                record = old_factory(*args, **kwargs)
+                if record.levelno >= level:
+                    self.logging_report(record=record, tags=tags, publish=publish)
+                return record
 
-        logging.setLogRecordFactory(record_factory)
+            logging.setLogRecordFactory(record_factory)
+
+            self.is_loggerhook_set = True
 
     def setup_excepthook(
         self, tags: Optional[List[str]] = None, publish: bool = True
