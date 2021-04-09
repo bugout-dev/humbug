@@ -6,6 +6,9 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
+
+# from logging import LogRecord
+import logging
 import os
 import pkg_resources
 import sys
@@ -73,6 +76,7 @@ class Reporter:
             )
 
         self.is_excepthook_set = False
+        self.is_loggerhook_set = False
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -309,7 +313,66 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
         return report
 
-    def setup_excepthook(self, tags: Optional[List[str]] = None, publish: bool = True):
+    def logging_report(
+        self,
+        record: logging.LogRecord,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        title = "{} - Logging error - {}".format(self.name, record.module)
+        error_content = """### User timestamp
+```
+{user_time}
+```
+
+### Module name
+```
+{module_name}
+```
+
+### Error message
+```
+{error_message}
+```""".format(
+            user_time=int(time.time()),
+            module_name=record.module,
+            error_message=record.getMessage(),
+        )
+        if tags is None:
+            tags = []
+        tags.append("type:logging")
+        tags.extend(self.system_tags())
+
+        report = Report(title=title, content=error_content, tags=tags)
+
+        if publish:
+            self.publish(report, wait=wait)
+
+        return report
+
+    def setup_loggerhook(
+        self,
+        level: int,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+    ) -> None:
+        if not self.is_loggerhook_set:
+            old_factory = logging.getLogRecordFactory()
+
+            def record_factory(*args, **kwargs):
+                record = old_factory(*args, **kwargs)
+                if record.levelno >= level:
+                    self.logging_report(record=record, tags=tags, publish=publish)
+                return record
+
+            logging.setLogRecordFactory(record_factory)
+
+            self.is_loggerhook_set = True
+
+    def setup_excepthook(
+        self, tags: Optional[List[str]] = None, publish: bool = True
+    ) -> None:
         """
         Adds error_report with python Exceptions.
         Only one excepthook will be added to stack, no matter how many
@@ -328,7 +391,7 @@ Release: `{os_release}`
 
             self.is_excepthook_set = True
 
-    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None):
+    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None) -> None:
         """
         Excepthook for ipython, works with jupiter notebook.
         """
