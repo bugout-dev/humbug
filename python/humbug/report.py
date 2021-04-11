@@ -14,7 +14,7 @@ import pkg_resources
 import sys
 import time
 import traceback
-from typing import List, Optional, Union
+from typing import List, Optional
 import uuid
 
 import requests
