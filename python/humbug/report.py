@@ -47,14 +47,6 @@ class Modes(Enum):
     SYNCHRONOUS = 1
 
 
-def make_request(method: str, url: str, **kwargs):
-    try:
-        r = requests.request(method, url=url, **kwargs)
-        r.raise_for_status()
-    except Exception as e:
-        raise BugoutUnexpectedStatusResponse(f"Exception {str(e)}")
-
-
 class Reporter:
     def __init__(
         self,
@@ -96,23 +88,6 @@ class Reporter:
         self.is_excepthook_set = False
         self.is_loggerhook_set = False
 
-    def create_report(
-        self,
-        token: Union[str, uuid.UUID],
-        title: str,
-        content: str,
-        tags: List[str] = [],
-        **kwargs,
-    ):
-        method = "POST"
-        report_path = f"humbug/reports"
-        json = {"title": title, "content": content, "tags": tags}
-        headers = {
-            "Authorization": f"Bearer {token}",
-        }
-        url = f"{self.url.rstrip('/')}/{report_path.rstrip('/')}"
-        make_request(method, url=url, headers=headers, json=json, **kwargs)
-
     def wait(self) -> None:
         concurrent.futures.wait(
             self.report_futures, timeout=float(self.timeout_seconds)
@@ -145,23 +120,24 @@ class Reporter:
         if self.bugout_token is None:
             return
 
+        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        headers = {
+            "Authorization": "Bearer {}".format(self.bugout_token),
+        }
+        url = "{}/humbug/reports".format(self.url.rstrip("/"))
+
         try:
             report.tags = list(set(report.tags))
             if wait or self.executor is None:
-                self.create_report(
-                    token=self.bugout_token,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
-                    timeout=self.timeout_seconds,
+                requests.post(
+                    url=url, headers=headers, json=json, timeout=self.timeout_seconds
                 )
             else:
                 report_future = self.executor.submit(
-                    self.create_report,
-                    token=self.bugout_token,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
+                    requests.post,
+                    url=url,
+                    headers=headers,
+                    json=json,
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
