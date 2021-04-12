@@ -7,11 +7,23 @@ Humbug lets you collect basic system information and crash reports while respect
 privacy. In addition to getting reports, you get to be [GDPR](https://gdpr-info.eu/)-compliant from
 day one.
 
-Humbug is currently available in the following programming languages:
+Humbug is currently available in the following programming languages and supproted types of errors:
 
 1. [Python](./python)
+- Error traceback report
+- System information report
+- Packages available in the current Python process report
+- Python logging module report
+- Environment variables report
+- Custom report with full content control
+
 2. [Go](./go)
-3. Javascript (coming soon)
+- Panic report
+- System infromtation report
+
+3. [Javascript] (./javascript)
+- Error traceback report
+- System information report
 
 If you would like support for another programming language, please
 [create an issue](https://github.com/bugout-dev/humbug/issues/new).
