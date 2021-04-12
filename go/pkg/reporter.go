@@ -7,8 +7,6 @@ import (
 	"net/http"
 )
 
-var defaultBaseUrl = "https://spire.bugout.dev"
-
 type reportRequest struct {
 	Title       string   `json:"title"`
 	Content     string   `json:"content"`
@@ -23,11 +21,11 @@ type Reporter interface {
 }
 
 type HumbugReporter struct {
-	baseUrl           string
-	clientID          string
-	sessionID         string
-	consent           Consent
-	bugoutAccessToken string
+	BaseUrl           string
+	ClientID          string
+	SessionID         string
+	Consent           Consent
+	ReporterToken     string
 	tags              map[string]bool
 }
 
@@ -90,10 +88,10 @@ func (reporter *HumbugReporter) Publish(report Report) {
 		// set appropriately.
 		recover()
 	}()
-	userHasConsented := reporter.consent.Check()
+	userHasConsented := reporter.Consent.Check()
 	if userHasConsented {
 		tags := MergeTags(report.Tags, reporter.Tags())
-		entriesRoute := fmt.Sprintf("%s/humbug/reports", reporter.baseUrl)
+		entriesRoute := fmt.Sprintf("%s/humbug/reports", reporter.BaseUrl)
 		requestBody := reportRequest{
 			Title:   report.Title,
 			Content: report.Content,
@@ -107,29 +105,22 @@ func (reporter *HumbugReporter) Publish(report Report) {
 		client := &http.Client{}
 		request.Header.Add("Content-Type", "application/json")
 		request.Header.Add("Accept", "application/json")
-		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.bugoutAccessToken))
+		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.ReporterToken))
 	
 		client.Do(request)
 
 	}
 }
 
-func CreateHumbugReporter( consent Consent, clientID string, sessionID string, bugoutAccessToken string, baseUrl string,) (*HumbugReporter, error) {
-	reporter := HumbugReporter{
-		consent:           consent,
-		clientID:          clientID,
-		sessionID:         sessionID,
-		bugoutAccessToken: bugoutAccessToken,
+func CreateHumbugReporter(reporter HumbugReporter ) (*HumbugReporter, error) {
+
+	reporter.Tag("session", reporter.SessionID)
+	if reporter.BaseUrl == "" {
+		reporter.BaseUrl = "https://spire.bugout.dev"
 	}
 
-	reporter.Tag("session", sessionID)
-	if baseUrl != "" {
-		reporter.baseUrl = baseUrl
-	} else {
-		reporter.baseUrl = defaultBaseUrl
-	}
-	if clientID != "" {
-		reporter.Tag("client", clientID)
+	if reporter.ClientID != "" {
+		reporter.Tag("client", reporter.ClientID)
 	}
 	return &reporter, nil
 }
