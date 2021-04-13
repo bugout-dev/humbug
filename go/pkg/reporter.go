@@ -1,11 +1,17 @@
 package humbug
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
-
-	bugout "github.com/bugout-dev/bugout-go/pkg"
-	"github.com/bugout-dev/bugout-go/pkg/spire"
+	"net/http"
 )
+
+type reportRequest struct {
+	Title       string   `json:"title"`
+	Content     string   `json:"content"`
+	Tags        []string `json:"tags"`
+}
 
 type Reporter interface {
 	Tag(key string, modifier string)
@@ -15,12 +21,11 @@ type Reporter interface {
 }
 
 type HumbugReporter struct {
+	BaseURL           string
 	clientID          string
 	sessionID         string
 	consent           Consent
-	bugoutClient      bugout.BugoutClient
-	bugoutAccessToken string
-	bugoutJournalID   string
+	reporterToken     string
 	tags              map[string]bool
 }
 
@@ -75,7 +80,7 @@ func MergeTags(tags0, tags1 []string) []string {
 	return mergedTags
 }
 
-func (reporter *HumbugReporter) Publish(report Report) error {
+func (reporter *HumbugReporter) Publish(report Report) {
 	defer func() {
 		// TODO(zomglings): For now, we only recover here so panicked Publish calls do not have an
 		// effect on any program using the Humbug library. In the future, there should be an option
@@ -83,37 +88,47 @@ func (reporter *HumbugReporter) Publish(report Report) error {
 		// set appropriately.
 		recover()
 	}()
-	var err error
 	userHasConsented := reporter.consent.Check()
 	if userHasConsented {
-		context := spire.EntryContext{
-			ContextType: "humbug",
-			ContextID:   reporter.sessionID,
-		}
 		tags := MergeTags(report.Tags, reporter.Tags())
-		_, err = reporter.bugoutClient.Spire.CreateEntry(reporter.bugoutAccessToken, reporter.bugoutJournalID, report.Title, report.Content, tags, context)
+		entriesRoute := fmt.Sprintf("%s/humbug/reports", reporter.BaseURL)
+		requestBody := reportRequest{
+			Title:   report.Title,
+			Content: report.Content,
+			Tags:    tags,
+		}
+		requestBuffer := new(bytes.Buffer)
+		json.NewEncoder(requestBuffer).Encode(requestBody)
+
+		request, _ := http.NewRequest("POST", entriesRoute, requestBuffer)
+
+		client := &http.Client{}
+		request.Header.Add("Content-Type", "application/json")
+		request.Header.Add("Accept", "application/json")
+		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
+	
+		client.Do(request)
+
 	}
-	return err
+}
+func (reporter *HumbugReporter) SetBaseURL(baseURL string) {
+    reporter.BaseURL = baseURL
 }
 
-func CreateHumbugReporter(consent Consent, clientID string, sessionID string, bugoutAccessToken string, bugoutJournalID string) (*HumbugReporter, error) {
+func CreateHumbugReporter(consent Consent, clientID string, sessionID string, reporterToken string) (*HumbugReporter, error) {
 	reporter := HumbugReporter{
 		consent:           consent,
 		clientID:          clientID,
 		sessionID:         sessionID,
-		bugoutAccessToken: bugoutAccessToken,
-		bugoutJournalID:   bugoutJournalID,
+		reporterToken:     reporterToken,
+	}
+	reporter.Tag("session", reporter.sessionID)
+	if reporter.BaseURL == "" {
+		reporter.BaseURL = "https://spire.bugout.dev"
 	}
 
-	reporter.Tag("session", sessionID)
-	if clientID != "" {
-		reporter.Tag("client", clientID)
+	if reporter.clientID != "" {
+		reporter.Tag("client", reporter.clientID)
 	}
-
-	bugoutClient, err := bugout.ClientFromEnv()
-	if err != nil {
-		return &reporter, err
-	}
-	reporter.bugoutClient = bugoutClient
 	return &reporter, nil
 }

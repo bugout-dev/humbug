@@ -16,15 +16,14 @@ func main() {
 	clientID := "test-client"
 	sessionID := "test-session"
 
-	// You can get this access token and journal ID by following the setup instructions at:
+	// You can get this access token by following the setup instructions at:
 	// https://github.com/bugout-dev/humbug
 	// In short, you have to create a "Bugout Usage Reports" integration to get these parameters.
 	// There is no need to define them as environment variables. If you want, you can just hard-code
 	// them here.
-	bugoutAccessToken := os.Getenv("BUGOUT_ACCESS_TOKEN")
-	bugoutJournalID := os.Getenv("BUGOUT_JOURNAL_ID")
+	reporterToken := os.Getenv("BUGOUT_REPORTER_TOKEN")
 
-	reporter, _ := humbug.CreateHumbugReporter(consent, clientID, sessionID, bugoutAccessToken, bugoutJournalID)
+	reporter, _ := humbug.CreateHumbugReporter(consent, clientID, sessionID, reporterToken)
 	// RECIPE: This is how you record panics from your go routines.
 	defer func() {
 		message := recover()
