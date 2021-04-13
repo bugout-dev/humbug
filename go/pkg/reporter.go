@@ -21,11 +21,11 @@ type Reporter interface {
 }
 
 type HumbugReporter struct {
-	BaseUrl           string
-	ClientID          string
-	SessionID         string
-	Consent           Consent
-	ReporterToken     string
+	BaseURL           string
+	clientID          string
+	sessionID         string
+	consent           Consent
+	reporterToken     string
 	tags              map[string]bool
 }
 
@@ -88,10 +88,10 @@ func (reporter *HumbugReporter) Publish(report Report) {
 		// set appropriately.
 		recover()
 	}()
-	userHasConsented := reporter.Consent.Check()
+	userHasConsented := reporter.consent.Check()
 	if userHasConsented {
 		tags := MergeTags(report.Tags, reporter.Tags())
-		entriesRoute := fmt.Sprintf("%s/humbug/reports", reporter.BaseUrl)
+		entriesRoute := fmt.Sprintf("%s/humbug/reports", reporter.BaseURL)
 		requestBody := reportRequest{
 			Title:   report.Title,
 			Content: report.Content,
@@ -105,25 +105,30 @@ func (reporter *HumbugReporter) Publish(report Report) {
 		client := &http.Client{}
 		request.Header.Add("Content-Type", "application/json")
 		request.Header.Add("Accept", "application/json")
-		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.ReporterToken))
+		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
 	
 		client.Do(request)
 
 	}
 }
 func (reporter *HumbugReporter) SetBaseURL(baseURL string) {
-    reporter.baseURL = baseURL
+    reporter.BaseURL = baseURL
 }
 
 func CreateHumbugReporter(consent Consent, clientID string, sessionID string, reporterToken string) (*HumbugReporter, error) {
-
-	reporter.Tag("session", reporter.SessionID)
-	if reporter.BaseUrl == "" {
-		reporter.BaseUrl = "https://spire.bugout.dev"
+	reporter := HumbugReporter{
+		consent:           consent,
+		clientID:          clientID,
+		sessionID:         sessionID,
+		reporterToken:     reporterToken,
+	}
+	reporter.Tag("session", reporter.sessionID)
+	if reporter.BaseURL == "" {
+		reporter.BaseURL = "https://spire.bugout.dev"
 	}
 
-	if reporter.ClientID != "" {
-		reporter.Tag("client", reporter.ClientID)
+	if reporter.clientID != "" {
+		reporter.Tag("client", reporter.clientID)
 	}
 	return &reporter, nil
 }
