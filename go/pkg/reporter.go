@@ -111,8 +111,11 @@ func (reporter *HumbugReporter) Publish(report Report) {
 
 	}
 }
+func (reporter *HumbugReporter) SetBaseURL(baseURL string) {
+    reporter.baseURL = baseURL
+}
 
-func CreateHumbugReporter(reporter HumbugReporter ) (*HumbugReporter, error) {
+func CreateHumbugReporter(consent Consent, clientID string, sessionID string, reporterToken string) (*HumbugReporter, error) {
 
 	reporter.Tag("session", reporter.SessionID)
 	if reporter.BaseUrl == "" {
