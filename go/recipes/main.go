@@ -21,9 +21,9 @@ func main() {
 	// In short, you have to create a "Bugout Usage Reports" integration to get these parameters.
 	// There is no need to define them as environment variables. If you want, you can just hard-code
 	// them here.
-	bugoutAccessToken := os.Getenv("BUGOUT_ACCESS_TOKEN")
+	reporterToken := os.Getenv("BUGOUT_REPORTER_TOKEN")
 
-	reporter, _ := humbug.CreateHumbugReporter(consent, clientID, sessionID, bugoutAccessToken)
+	reporter, _ := humbug.CreateHumbugReporter(consent, clientID, sessionID, reporterToken)
 	// RECIPE: This is how you record panics from your go routines.
 	defer func() {
 		message := recover()
