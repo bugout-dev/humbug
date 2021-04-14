@@ -42,9 +42,21 @@ parser.add_argument(
 
 
 def render_entry(entry):
+    link = entry.entry_url
+    frontend_route = "https://bugout.dev/app/personal/"
+    api_route_http = "http://spire.bugout.dev/journals/"
+    api_route_https = "https://spire.bugout.dev/journals/"
+
+    if link.startswith(api_route_http):
+        link = f"{frontend_route}{link[len(api_route_http):]}"
+        link = "".join(link.split("/entries"))
+    elif link.startswith(api_route_https):
+        link = f"{frontend_route}{link[len(api_route_https):]}"
+        link = "".join(link.split("/entries"))
+
     print("- - -")
     print(entry.title)
-    print("  Link: {}".format(entry.entry_url))
+    print("  Link: {}".format(link))
     print("  Created at: {}".format(entry.created_at))
     print("  Tags:")
     for tag in sorted(entry.tags):
