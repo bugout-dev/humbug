@@ -22,6 +22,7 @@ Humbug is currently available in the following programming languages:
 
    - System information report
    - Panic report
+   - Custom report with full content control
 
 3. [Javascript](./javascript)
 
