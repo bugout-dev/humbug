@@ -7,77 +7,36 @@ Humbug lets you collect basic system information and crash reports while respect
 privacy. In addition to getting reports, you get to be [GDPR](https://gdpr-info.eu/)-compliant from
 day one.
 
-Humbug is currently available in the following programming languages and supproted types of errors:
+Humbug is currently available in the following programming languages:
 
 1. [Python](./python)
-- Error traceback report
-- System information report
-- Packages available in the current Python process report
-- Python logging module report
-- Environment variables report
-- Custom report with full content control
+
+   - System information report
+   - Error traceback report
+   - Packages available in the current Python process report
+   - Logs report
+   - Environment variables report
+   - Custom report with full content control
 
 2. [Go](./go)
-- Panic report
-- System infromtation report
 
-3. [Javascript] (./javascript)
-- Error traceback report
-- System information report
+   - System information report
+   - Panic report
 
-If you would like support for another programming language, please
-[create an issue](https://github.com/bugout-dev/humbug/issues/new).
+3. [Javascript](./javascript)
+
+   - System information report
+   - Error traceback report
+
+If you would like support for another programming language, please [create an issue](https://github.com/bugout-dev/humbug/issues/new).
 
 ---
 
 ## Using Humbug
 
-### Trying it out
+### Setup
 
-First, sign up for an account at https://bugout.dev.
-
-Once you have created your account, go to the [`Account > Teams`](https://bugout.dev/account/teams)
-page and create a team:
-
-![Create a team](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/create-a-team-0.png)
-
-Once you have created a team, you should see something like this:
-
-![Team created!](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/create-a-team-1.png)
-
-Click on the `Usage Reports` button on your new team to set up reporting:
-
-![Set up usage reports](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/usage-reports-0.png)
-
-Enter a name for your project:
-
-![Create project for usage reporting](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/usage-reports-1.png)
-
-This should result in a view like this one:
-
-![Project created!](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/usage-reports-2.png)
-
-Now, create a new token that you can use for reporting:
-
-![Create token](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/usage-reports-3.png)
-
-Which should get you to a view like this one:
-
-![All set!](https://s3.amazonaws.com/static.simiotics.com/humbug-demo/usage-reports-4.png)
-
-Make special note of the `Journal ID` and the `Token`. You will need them in the next step, where
-you will instrument your application to register usage reports with Bugout.
-
-Here are some examples of how to do this in:
-
-1. [Python](./python/README.md#integration)
-
-#### Using the demo journal and token
-
-If you would like to try things out with the demo integration from above, just email
-[me](mailto:neeraj@bugout.dev) ([zomglings](https://github.com/zomglings)) with your Bugout
-username and I will add you to the demo team.
-You can also reach me on the [Bugout.dev community slack](https://join.slack.com/t/bugout-dev/shared_invite/zt-fhepyt87-5XcJLy0iu702SO_hMFKNhQ).
+Follow the instructions in the [Getting started with usage and crash reporting](https://bugout.dev/app/personal/d550eb09-7c85-4fdc-b687-9f04b730f6e1/07b21356-2e3f-4fa9-bd77-764fe903a640) guide.
 
 #### From development to production
 
