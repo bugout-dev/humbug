@@ -36,7 +36,7 @@ If you would like support for another programming language, please [create an is
 
 ### Setup
 
-Follow the instructions in the [Getting started with usage and crash reporting](https://bugout.dev/app/personal/d550eb09-7c85-4fdc-b687-9f04b730f6e1/07b21356-2e3f-4fa9-bd77-764fe903a640) guide.
+Follow the instructions in the [Getting started with usage and crash reporting](https://bugout.dev/app/public/d550eb09-7c85-4fdc-b687-9f04b730f6e1/07b21356-2e3f-4fa9-bd77-764fe903a640) guide.
 
 #### From development to production
 
