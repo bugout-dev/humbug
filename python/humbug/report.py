@@ -52,13 +52,13 @@ class HumbugReporter:
         self,
         name: str,
         consent: HumbugConsent,
-        url: Optional[str] = None,
         client_id: Optional[str] = None,
         session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
+        url: Optional[str] = None,
     ):
         if url is None:
             url = DEFAULT_URL
@@ -417,12 +417,31 @@ Release: `{os_release}`
 
 
 class Reporter(HumbugReporter):
-
     """
     Deprecated.
     Old class name.
     """
 
-    def __init__(self, bugout_journal_id: Optional[str] = None, *args, **kw):
-        super().__init__(*args, **kw)
+    def __init__(
+        self,
+        name: str,
+        consent: HumbugConsent,
+        client_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        system_information: Optional[SystemInformation] = None,
+        bugout_token: Optional[str] = None,
+        bugout_journal_id: Optional[str] = None,
+        timeout_seconds: int = 10,
+        mode: Modes = Modes.DEFAULT,
+    ):
+        super().__init__(
+            name,
+            consent,
+            client_id,
+            session_id,
+            system_information,
+            bugout_token,
+            timeout_seconds,
+            mode,
+        )
         self.bugout_journal_id = bugout_journal_id

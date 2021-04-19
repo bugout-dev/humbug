@@ -6,7 +6,7 @@ import sys
 import uuid
 
 from humbug.consent import HumbugConsent, environment_variable_opt_out, no
-from humbug.report import Reporter
+from humbug.report import HumbugReporter
 
 DEMO_BUGOUT_ACCESS_TOKEN = "a390de7a-c64f-482c-b3f4-b9322ffaadef"
 
@@ -54,9 +54,9 @@ consent = HumbugConsent(
 Now we create a Humbug reporter object to send reports.
 """
 session_id = str(uuid.uuid4())
-reporter = Reporter(
-    "recipes/system_reporting",
-    consent,
+reporter = HumbugReporter(
+    name="recipes/system_reporting",
+    consent=consent,
     session_id=session_id,
     bugout_token=bugout_access_token,
 )
