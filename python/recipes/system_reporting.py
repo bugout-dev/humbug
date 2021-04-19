@@ -9,11 +9,10 @@ from humbug.consent import HumbugConsent, environment_variable_opt_out, no
 from humbug.report import Reporter
 
 DEMO_BUGOUT_ACCESS_TOKEN = "a390de7a-c64f-482c-b3f4-b9322ffaadef"
-DEMO_BUGOUT_JOURNAL_ID = "1bf50549-a8ef-430f-b788-fb2ac864d42a"
 
 """
 LEND ME YOUR EYES, FRIEND:
-Please replace the bugout_access_token and bugout_journal_id with the values you generate in the
+Please replace the bugout_access_token with the value you generate in the
 process of setting up a "Usage Reports" integration at https://bugout.dev.
 
 Full instructions can be found here: https://github.com/bugout-dev/humbug/blob/main/README.md
@@ -24,15 +23,9 @@ under your own Bugout.dev account.
 If you would like access to the demo knowledge base, email me at neeraj@bugout.dev.
 """
 bugout_access_token: str = DEMO_BUGOUT_ACCESS_TOKEN
-bugout_journal_id: str = DEMO_BUGOUT_JOURNAL_ID
 
-if (
-    bugout_access_token == DEMO_BUGOUT_ACCESS_TOKEN
-    or bugout_journal_id == DEMO_BUGOUT_JOURNAL_ID
-):
-    print(
-        "It seems you are running this script with the demo Bugout access token and journal id."
-    )
+if bugout_access_token == DEMO_BUGOUT_ACCESS_TOKEN:
+    print("It seems you are running this script with the demo Bugout access token.")
     print(
         "If you continue, this script will publish reports to a Bugout.dev knowledge base that you do not have access to."
     )
@@ -66,7 +59,6 @@ reporter = Reporter(
     consent,
     session_id=session_id,
     bugout_token=bugout_access_token,
-    bugout_journal_id=bugout_journal_id,
 )
 
 """

@@ -17,13 +17,22 @@ import traceback
 from typing import List, Optional
 import uuid
 
-from bugout.app import Bugout
+import requests
 
 from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
     generate as generate_system_information,
 )
+
+
+DEFAULT_URL = "https://spire.bugout.dev"
+
+
+class BugoutUnexpectedStatusResponse(Exception):
+    """
+    Raised when Bugout server response return incorrect status.
+    """
 
 
 @dataclass
@@ -38,19 +47,22 @@ class Modes(Enum):
     SYNCHRONOUS = 1
 
 
-class Reporter:
+class HumbugReporter:
     def __init__(
         self,
         name: str,
         consent: HumbugConsent,
+        url: Optional[str] = None,
         client_id: Optional[str] = None,
         session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
-        bugout_journal_id: Optional[str] = None,
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
     ):
+        if url is None:
+            url = DEFAULT_URL
+        self.url = url
         self.name = name
         self.consent = consent
         self.client_id = client_id
@@ -61,9 +73,7 @@ class Reporter:
         if system_information is None:
             system_information = generate_system_information()
         self.system_information = system_information
-        self.bugout = Bugout()
         self.bugout_token = bugout_token
-        self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
 
         self.report_futures: List[concurrent.futures.Future] = []
@@ -107,28 +117,27 @@ class Reporter:
     def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
-        if self.bugout_token is None or self.bugout_journal_id is None:
+        if self.bugout_token is None:
             return
+
+        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        headers = {
+            "Authorization": "Bearer {}".format(self.bugout_token),
+        }
+        url = "{}/humbug/reports".format(self.url.rstrip("/"))
 
         try:
             report.tags = list(set(report.tags))
             if wait or self.executor is None:
-                self.bugout.create_entry(
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
-                    timeout=self.timeout_seconds,
+                requests.post(
+                    url=url, headers=headers, json=json, timeout=self.timeout_seconds
                 )
             else:
                 report_future = self.executor.submit(
-                    self.bugout.create_entry,
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
+                    requests.post,
+                    url=url,
+                    headers=headers,
+                    json=json,
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
@@ -405,3 +414,15 @@ Release: `{os_release}`
 
         ipython_shell.showtraceback = showtraceback
         self.setup_excepthook(publish=True, tags=tags)
+
+
+class Reporter(HumbugReporter):
+
+    """
+    Deprecated.
+    Old class name.
+    """
+
+    def __init__(self, bugout_journal_id: Optional[str] = None, *args, **kw):
+        super().__init__(*args, **kw)
+        self.bugout_journal_id = bugout_journal_id
