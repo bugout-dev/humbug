@@ -18,7 +18,6 @@ from typing import List, Optional
 import uuid
 
 import requests
-from bugout.app import Bugout
 
 from .consent import HumbugConsent
 from .system_information import (
@@ -46,6 +45,7 @@ class Report:
 class Modes(Enum):
     DEFAULT = 0
     SYNCHRONOUS = 1
+
 
 class HumbugReporter:
     def __init__(
@@ -87,7 +87,7 @@ class HumbugReporter:
 
         self.is_excepthook_set = False
         self.is_loggerhook_set = False
-    
+
     def wait(self) -> None:
         concurrent.futures.wait(
             self.report_futures, timeout=float(self.timeout_seconds)
@@ -113,7 +113,7 @@ class HumbugReporter:
             tags.append("client:{}".format(self.client_id))
 
         return tags
-    
+
     def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
@@ -418,34 +418,11 @@ Release: `{os_release}`
 
 class Reporter(HumbugReporter):
 
-    def publish(self, report: Report, wait: bool = False) -> None:
-        if not self.consent.check():
-            return
-        if self.bugout_token is None or self.bugout_journal_id is None:
-            return
+    """
+    Deprecated.
+    Old class name.
+    """
 
-        try:
-            report.tags = list(set(report.tags))
-            if wait or self.executor is None:
-                self.bugout.create_entry(
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
-                    timeout=self.timeout_seconds,
-                )
-            else:
-                report_future = self.executor.submit(
-                    self.bugout.create_entry,
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
-                    timeout=self.timeout_seconds,
-                )
-                self.report_futures.append(report_future)
-        except:
-            pass
-
+    def __init__(self, bugout_journal_id: Optional[str] = None, *args, **kw):
+        super().__init__(*args, **kw)
+        self.bugout_journal_id = bugout_journal_id

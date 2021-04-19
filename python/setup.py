@@ -8,7 +8,7 @@ setup(
     name="humbug",
     version="0.2.0",
     packages=find_packages(),
-    install_requires=["requests","bugout"],
+    install_requires=["requests", "bugout"],
     extras_require={
         "dev": ["black", "mypy", "wheel"],
         "distribute": ["setuptools", "twine", "wheel"],
