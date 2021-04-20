@@ -7,7 +7,6 @@ import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
 
-# from logging import LogRecord
 import logging
 import os
 import pkg_resources
@@ -62,7 +61,7 @@ class HumbugReporter:
     ):
         if url is None:
             url = DEFAULT_URL
-        self.url = url
+        self.url = url.rstrip("/")
         self.name = name
         self.consent = consent
         self.client_id = client_id
@@ -124,7 +123,7 @@ class HumbugReporter:
         headers = {
             "Authorization": "Bearer {}".format(self.bugout_token),
         }
-        url = "{}/humbug/reports".format(self.url.rstrip("/"))
+        url = "{}/humbug/reports".format(self.url)
 
         try:
             report.tags = list(set(report.tags))
@@ -445,3 +444,45 @@ class Reporter(HumbugReporter):
             mode,
         )
         self.bugout_journal_id = bugout_journal_id
+
+    def publish(self, report: Report, wait: bool = False) -> None:
+        """
+        Backwards-compatible publish method in case a Humbug integration has not been set up.
+
+        Using this skips all the benefits you derive from the /humbug/reports endpoint. For
+        example:
+        1. Deduplication of reports by cache key
+        2. Higher rate limit
+        """
+        if not self.consent.check():
+            return
+
+        if self.bugout_token is None:
+            return
+
+        if self.bugout_journal_id is None:
+            return
+
+        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        headers = {
+            "Authorization": "Bearer {}".format(self.bugout_token),
+        }
+        url = "{}/journals/{}/entries".format(self.url, self.bugout_journal_id)
+
+        try:
+            report.tags = list(set(report.tags))
+            if wait or self.executor is None:
+                requests.post(
+                    url=url, headers=headers, json=json, timeout=self.timeout_seconds
+                )
+            else:
+                report_future = self.executor.submit(
+                    requests.post,
+                    url=url,
+                    headers=headers,
+                    json=json,
+                    timeout=self.timeout_seconds,
+                )
+                self.report_futures.append(report_future)
+        except:
+            pass
