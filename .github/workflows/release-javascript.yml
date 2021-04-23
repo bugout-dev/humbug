@@ -1,0 +1,42 @@
+name: Release for Humbug JavaScript library
+
+on:
+  push:
+    tags:
+      - 'javascript/v*'
+
+defaults:
+  run:
+    working-directory: javascript
+
+jobs:
+  publish:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 15.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: '15.x'
+      - name: Build and install dependencies
+        run: |
+          npm install
+          npm run build
+      - name: Publish package
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+  create_release:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: "Humbug JavaScript library - ${{ github.ref }}"
+          body: |
+            Version ${{ github.ref }} of the Humbug JavaScript library
+          draft: true
+          prerelease: false
