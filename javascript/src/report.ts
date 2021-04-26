@@ -5,6 +5,7 @@ Bugout knowledge bases.
 import axios, { AxiosInstance } from "axios"
 
 import { generateSystemInformation, SystemInformation } from "./information"
+import HumbugConsent from "./consent"
 
 
 type Report = {
@@ -20,7 +21,7 @@ export default class Reporter {
 
     constructor(
         public name: string,
-        public concent: boolean,
+        public consent: HumbugConsent,
         public clientId?: string,
         public sessionId?: string,
         public bugoutToken?: string,
@@ -52,7 +53,7 @@ export default class Reporter {
     }
 
     async publish(report: Report): Promise<any> {
-        if (!this.concent) {
+        if (this.consent.check() === false) {
             return null
         }
         if (this.bugoutToken === undefined || this.bugoutJournalId === undefined) {
@@ -106,10 +107,11 @@ ${this.systemInformation.nodeVersion}
 \`\`\`
 `
 
-        if (tags === undefined) {
-            tags = []
-        }
         const report: Report = { title, content, tags: this.systemTags() }
+        if (tags !== undefined) {
+            report.tags.push(...tags)
+        }
+        report.tags.push(...["type:system"])
 
         if (publish) {
             await this.publish(report)
@@ -140,11 +142,11 @@ ${error.message}
 ${error.stack}
 \`\`\`
 `
-        if (tags === undefined) {
-            tags = []
-        }
         const report: Report = { title, content, tags: this.systemTags() }
-
+        if (tags !== undefined) {
+            report.tags.push(...tags)
+        }
+        report.tags.push(...["type:error"])
         if (publish) {
             await this.publish(report)
         }
