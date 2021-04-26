@@ -24,6 +24,7 @@ npm run build
 Prepare Humbug and fill your token API key:
 ```javascript
 import Reporter from 'bugout-humbug'
+import Reporter, HumbugConsent from 'humbug'
 
 const BUGOUT_TOKEN = "06a1a299-c6b4-4709-8ac5-650d5e78e53e"
 const BUGOUT_KB_ID = "6a1817c7-9500-4e38-9ab7-ffd858422036"
@@ -31,9 +32,10 @@ const BUGOUT_KB_ID = "6a1817c7-9500-4e38-9ab7-ffd858422036"
 
 Instantiate the reporter:
 ```javascript
+const consent = HumbugConsent(true)
 const reporter = new Reporter(
     "<name>", 
-    true, 
+    consent, 
     "<client_id>", 
     "<session_id>", 
     BUGOUT_TOKEN, 
