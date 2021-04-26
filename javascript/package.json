@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Humbug: Do you build developer tools? Humbug helps you know your users.",
   "main": "lib/report.js",
+  "types": "lib/report.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "node lib/index.js",
@@ -13,6 +14,9 @@
     "type": "git",
     "url": "git+https://github.com/bugout-dev/humbug.git"
   },
+  "files": [
+    "lib/*", "src/*"
+  ],
   "keywords": [
     "bugout",
     "crash",

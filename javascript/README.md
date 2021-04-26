@@ -23,6 +23,7 @@ npm run build
 
 Prepare Humbug and fill your token API key:
 ```javascript
+import Reporter from 'bugout-humbug'
 import Reporter, HumbugConsent from 'humbug'
 
 const BUGOUT_TOKEN = "06a1a299-c6b4-4709-8ac5-650d5e78e53e"
