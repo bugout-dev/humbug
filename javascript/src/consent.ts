@@ -3,7 +3,10 @@ This module implements Humbug's user consent mechanisms.
 */
 
 export default class HumbugConsent {
-    buggerOffStatus: boolean
+    /*
+    HumbugConsent stores the client's consent settings.
+    */
+    buggerOffStatus: () => boolean
 
     constructor(
         public mechanisms?: boolean
@@ -11,29 +14,33 @@ export default class HumbugConsent {
         if (mechanisms === undefined) {
             this.mechanisms = false
         }
-        this.buggerOffStatus = environmentVariableOptOut()
+        this.buggerOffStatus = environmentVariableOptOut("BUGGER_OFF", ["yes"])
     }
 
     check(): boolean {
+        /*
+        Checks if all consent mechanisms signal the user's consent. 
+        If any of them signal false, returns false. Otherwise, 
+        returns True.
+
+        If the user has set BUGGER_OFF=yes then do not assume consent.
+        Otherwise, at this point, we can assume consent.
+        */
         if (this.mechanisms === false) {
             return false
         }
-        else if (this.buggerOffStatus === false) {
-            return false
-        }
-        return true
+        return this.buggerOffStatus()
     }
 }
 
-function environmentVariableOptOut(): boolean {
-    const envVar = process.env.BUGGER_OFF
-    if (envVar === undefined) {
-        return true
-    }
-    if (envVar.toLowerCase() === "false") {
-        return false
-    }
-    else {
+function environmentVariableOptOut(
+    envVar: string, optOutValues: string[]
+) {
+    return () => {
+        const envVal = process.env[envVar];
+        if (envVal !== undefined) {
+            return !optOutValues.includes(envVal);
+        }
         return true
     }
 }
