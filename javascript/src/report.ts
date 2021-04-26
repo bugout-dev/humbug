@@ -107,10 +107,11 @@ ${this.systemInformation.nodeVersion}
 \`\`\`
 `
 
-        if (tags === undefined) {
-            tags = []
-        }
         const report: Report = { title, content, tags: this.systemTags() }
+        if (tags !== undefined) {
+            report.tags.push(...tags)
+        }
+        report.tags.push(...["type:system"])
 
         if (publish) {
             await this.publish(report)
@@ -141,11 +142,11 @@ ${error.message}
 ${error.stack}
 \`\`\`
 `
-        if (tags === undefined) {
-            tags = []
-        }
         const report: Report = { title, content, tags: this.systemTags() }
-
+        if (tags !== undefined) {
+            report.tags.push(...tags)
+        }
+        report.tags.push(...["type:error"])
         if (publish) {
             await this.publish(report)
         }
