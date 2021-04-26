@@ -1,5 +1,5 @@
 {
-  "name": "humbug",
+  "name": "@bugout/humbug",
   "version": "0.0.1",
   "description": "Humbug: Do you build developer tools? Humbug helps you know your users.",
   "main": "lib/report.js",
