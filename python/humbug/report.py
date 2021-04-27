@@ -399,11 +399,14 @@ Release: `{os_release}`
 
                 module = inspect.getmodule(exception_type)
                 if module is not None and modules_whitelist is not None:
+                    report_error = False
                     for module_whitelist in modules_whitelist:
-                        if not module.__name__.startswith(module_whitelist):
-                            return
-
-                self.error_report(error=exception_instance, tags=tags, publish=publish)
+                        if module.__name__.startswith(module_whitelist):
+                            report_error = True
+                if report_error:
+                    self.error_report(
+                        error=exception_instance, tags=tags, publish=publish
+                    )
 
             sys.excepthook = _hook
 
