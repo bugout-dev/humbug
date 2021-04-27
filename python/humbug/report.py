@@ -87,6 +87,20 @@ class HumbugReporter:
         self.is_excepthook_set = False
         self.is_loggerhook_set = False
 
+    def _extract_error_base(self, error: Exception) -> List[str]:
+        error_bases_list = []
+        try:
+            for error_base in error.__class__.__bases__:
+                error_base_module = error_base.__dict__.get("__module__", None)
+                if error_base_module is not None:
+                    error_name = "{}.{}".format(error_base_module, error_base.__name__)
+                else:
+                    error_name = error_base.__name__
+                error_bases_list.append("{}".format(error_name))
+        except Exception:
+            pass
+        return error_bases_list
+
     def wait(self) -> None:
         concurrent.futures.wait(
             self.report_futures, timeout=float(self.timeout_seconds)
@@ -237,6 +251,11 @@ Release: `{os_release}`
         )
         if tags is None:
             tags = []
+
+        error_bases = self._extract_error_base(error=error)
+        for error_base in error_bases:
+            tags.append("error:{}".format(error_base))
+
         tags.append("type:error")
         tags.extend(self.system_tags())
 
