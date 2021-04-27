@@ -321,13 +321,6 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
         return report
 
-<<<<<<< HEAD
-    def setup_excepthook(
-        self,
-        tags: Optional[List[str]] = None,
-        publish: bool = True,
-        modules_whitelist: Optional[List[str]] = None,
-=======
     def logging_report(
         self,
         record: logging.LogRecord,
@@ -386,8 +379,10 @@ Release: `{os_release}`
             self.is_loggerhook_set = True
 
     def setup_excepthook(
-        self, tags: Optional[List[str]] = None, publish: bool = True
->>>>>>> upstream/main
+        self,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        modules_whitelist: Optional[List[str]] = None,
     ) -> None:
         """
         Adds error_report with python Exceptions.
