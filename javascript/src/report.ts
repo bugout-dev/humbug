@@ -155,3 +155,5 @@ ${error.stack}
     }
 
 }
+
+export { HumbugConsent as HumbugConsent }
