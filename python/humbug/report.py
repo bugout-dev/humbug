@@ -398,11 +398,14 @@ Release: `{os_release}`
                 original_excepthook(exception_type, exception_instance, traceback)
 
                 module = inspect.getmodule(exception_type)
-                if module is not None and modules_whitelist is not None:
-                    report_error = False
-                    for module_whitelist in modules_whitelist:
-                        if module.__name__.startswith(module_whitelist):
+                report_error = False
+                if modules_whitelist is None:
+                    report_error = True
+                elif module is not None and modules_whitelist is not None:
+                    for whitelisted_module in modules_whitelist:
+                        if module.__name__.startswith(whitelisted_module):
                             report_error = True
+
                 if report_error:
                     self.error_report(
                         error=exception_instance, tags=tags, publish=publish
