@@ -16,7 +16,7 @@ To release to your private conda channel:
 
 5. Set conda to auto-upload builds: `~/miniconda3/bin/conda config --set anaconda_upload yes`
 
-6. Build and upload: `~/miniconda3/bin/conda build humbug --python=3.8`
+6. Build and upload: `~/miniconda3/bin/conda build humbug`
 
 The builds end up here: https://anaconda.org/bugout.dev/humbug
 
