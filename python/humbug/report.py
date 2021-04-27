@@ -494,5 +494,5 @@ class Reporter(HumbugReporter):
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
-        except:
+        except Exception:
             pass
