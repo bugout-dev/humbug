@@ -7,6 +7,7 @@ import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
 import inspect
+import logging
 import os
 import pkg_resources
 import sys
@@ -15,13 +16,22 @@ import traceback
 from typing import List, Optional
 import uuid
 
-from bugout.app import Bugout
+import requests
 
 from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
     generate as generate_system_information,
 )
+
+
+DEFAULT_URL = "https://spire.bugout.dev"
+
+
+class BugoutUnexpectedStatusResponse(Exception):
+    """
+    Raised when Bugout server response return incorrect status.
+    """
 
 
 @dataclass
@@ -36,7 +46,7 @@ class Modes(Enum):
     SYNCHRONOUS = 1
 
 
-class Reporter:
+class HumbugReporter:
     def __init__(
         self,
         name: str,
@@ -45,10 +55,13 @@ class Reporter:
         session_id: Optional[str] = None,
         system_information: Optional[SystemInformation] = None,
         bugout_token: Optional[str] = None,
-        bugout_journal_id: Optional[str] = None,
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
+        url: Optional[str] = None,
     ):
+        if url is None:
+            url = DEFAULT_URL
+        self.url = url.rstrip("/")
         self.name = name
         self.consent = consent
         self.client_id = client_id
@@ -59,9 +72,7 @@ class Reporter:
         if system_information is None:
             system_information = generate_system_information()
         self.system_information = system_information
-        self.bugout = Bugout()
         self.bugout_token = bugout_token
-        self.bugout_journal_id = bugout_journal_id
         self.timeout_seconds = timeout_seconds
 
         self.report_futures: List[concurrent.futures.Future] = []
@@ -74,6 +85,7 @@ class Reporter:
             )
 
         self.is_excepthook_set = False
+        self.is_loggerhook_set = False
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -104,28 +116,27 @@ class Reporter:
     def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
-        if self.bugout_token is None or self.bugout_journal_id is None:
+        if self.bugout_token is None:
             return
+
+        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        headers = {
+            "Authorization": "Bearer {}".format(self.bugout_token),
+        }
+        url = "{}/humbug/reports".format(self.url)
 
         try:
             report.tags = list(set(report.tags))
             if wait or self.executor is None:
-                self.bugout.create_entry(
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
-                    timeout=self.timeout_seconds,
+                requests.post(
+                    url=url, headers=headers, json=json, timeout=self.timeout_seconds
                 )
             else:
                 report_future = self.executor.submit(
-                    self.bugout.create_entry,
-                    token=self.bugout_token,
-                    journal_id=self.bugout_journal_id,
-                    title=report.title,
-                    content=report.content,
-                    tags=report.tags,
+                    requests.post,
+                    url=url,
+                    headers=headers,
+                    json=json,
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
@@ -310,11 +321,73 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
         return report
 
+<<<<<<< HEAD
     def setup_excepthook(
         self,
         tags: Optional[List[str]] = None,
         publish: bool = True,
         modules_whitelist: Optional[List[str]] = None,
+=======
+    def logging_report(
+        self,
+        record: logging.LogRecord,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        title = "{} - Logging error - {}".format(self.name, record.module)
+        error_content = """### User timestamp
+```
+{user_time}
+```
+
+### Module name
+```
+{module_name}
+```
+
+### Error message
+```
+{error_message}
+```""".format(
+            user_time=int(time.time()),
+            module_name=record.module,
+            error_message=record.getMessage(),
+        )
+        if tags is None:
+            tags = []
+        tags.append("type:logging")
+        tags.extend(self.system_tags())
+
+        report = Report(title=title, content=error_content, tags=tags)
+
+        if publish:
+            self.publish(report, wait=wait)
+
+        return report
+
+    def setup_loggerhook(
+        self,
+        level: int,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+    ) -> None:
+        if not self.is_loggerhook_set:
+            old_factory = logging.getLogRecordFactory()
+
+            def record_factory(*args, **kwargs):
+                record = old_factory(*args, **kwargs)
+                if record.levelno >= level:
+                    self.logging_report(record=record, tags=tags, publish=publish)
+                return record
+
+            logging.setLogRecordFactory(record_factory)
+
+            self.is_loggerhook_set = True
+
+    def setup_excepthook(
+        self, tags: Optional[List[str]] = None, publish: bool = True
+>>>>>>> upstream/main
     ) -> None:
         """
         Adds error_report with python Exceptions.
@@ -344,3 +417,91 @@ Release: `{os_release}`
             sys.excepthook = _hook
 
             self.is_excepthook_set = True
+
+    def setup_notebook_excepthook(self, tags: Optional[List[str]] = None) -> None:
+        """
+        Excepthook for ipython, works with jupiter notebook.
+        """
+        ipython_shell = get_ipython()  # type: ignore
+        old_showtraceback = ipython_shell.showtraceback
+
+        def showtraceback(*args, **kwargs):
+            _, exc_instance, _ = sys.exc_info()
+            self.error_report(exc_instance, tags=tags, publish=True)
+            old_showtraceback(*args, **kwargs)
+
+        ipython_shell.showtraceback = showtraceback
+        self.setup_excepthook(publish=True, tags=tags)
+
+
+class Reporter(HumbugReporter):
+    """
+    Deprecated.
+    Old class name.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        consent: HumbugConsent,
+        client_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        system_information: Optional[SystemInformation] = None,
+        bugout_token: Optional[str] = None,
+        bugout_journal_id: Optional[str] = None,
+        timeout_seconds: int = 10,
+        mode: Modes = Modes.DEFAULT,
+    ):
+        super().__init__(
+            name,
+            consent,
+            client_id,
+            session_id,
+            system_information,
+            bugout_token,
+            timeout_seconds,
+            mode,
+        )
+        self.bugout_journal_id = bugout_journal_id
+
+    def publish(self, report: Report, wait: bool = False) -> None:
+        """
+        Backwards-compatible publish method in case a Humbug integration has not been set up.
+
+        Using this skips all the benefits you derive from the /humbug/reports endpoint. For
+        example:
+        1. Deduplication of reports by cache key
+        2. Higher rate limit
+        """
+        if not self.consent.check():
+            return
+
+        if self.bugout_token is None:
+            return
+
+        if self.bugout_journal_id is None:
+            return
+
+        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        headers = {
+            "Authorization": "Bearer {}".format(self.bugout_token),
+        }
+        url = "{}/journals/{}/entries".format(self.url, self.bugout_journal_id)
+
+        try:
+            report.tags = list(set(report.tags))
+            if wait or self.executor is None:
+                requests.post(
+                    url=url, headers=headers, json=json, timeout=self.timeout_seconds
+                )
+            else:
+                report_future = self.executor.submit(
+                    requests.post,
+                    url=url,
+                    headers=headers,
+                    json=json,
+                    timeout=self.timeout_seconds,
+                )
+                self.report_futures.append(report_future)
+        except:
+            pass
