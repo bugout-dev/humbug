@@ -140,7 +140,7 @@ class HumbugReporter:
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
-        except:
+        except Exception:
             pass
 
     def custom_report(
@@ -394,15 +394,11 @@ Release: `{os_release}`
         if not self.is_excepthook_set:
             original_excepthook = sys.excepthook
 
-            if modules_whitelist is None:
-                modules_whitelist = []
-            modules_whitelist.append(self.name)
-
             def _hook(exception_type, exception_instance, traceback):
                 original_excepthook(exception_type, exception_instance, traceback)
 
                 module = inspect.getmodule(exception_type)
-                if module is not None:
+                if module is not None and modules_whitelist is not None:
                     for module_whitelist in modules_whitelist:
                         if not module.__name__.startswith(module_whitelist):
                             return
