@@ -1,6 +1,6 @@
 {
   "name": "@bugout/humbug",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Humbug: Do you build developer tools? Humbug helps you know your users.",
   "main": "lib/report.js",
   "types": "lib/report.d.ts",
