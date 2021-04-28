@@ -25,7 +25,6 @@ export default class Reporter {
         public clientId?: string,
         public sessionId?: string,
         public bugoutToken?: string,
-        public bugoutJournalId?: string,
         systemInformation?: SystemInformation
     ) {
         this.clientAPI = axios.create({ baseURL: "https://spire.bugout.dev" })
@@ -46,7 +45,7 @@ export default class Reporter {
             `node:${this.systemInformation.nodeVersion}`,
             `session:${this.sessionId}`
         ]
-        if (!this.clientId) {
+        if (this.clientId !== undefined) {
             tags.push(`client:${this.clientId}`)
         }
         return tags
@@ -56,11 +55,11 @@ export default class Reporter {
         if (this.consent.check() === false) {
             return null
         }
-        if (this.bugoutToken === undefined || this.bugoutJournalId === undefined) {
+        if (this.bugoutToken === undefined) {
             return null
         }
 
-        const publishURL = `/journals/${this.bugoutJournalId}/entries`
+        const publishURL = "/humbug/reports"
         const headers = {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${this.bugoutToken}`

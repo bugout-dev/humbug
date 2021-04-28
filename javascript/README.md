@@ -26,7 +26,6 @@ Prepare Humbug and fill your token API key:
 import Reporter, { HumbugConsent } from "@bugout/humbug"
 
 const BUGOUT_TOKEN = "06a1a299-c6b4-4709-8ac5-650d5e78e53e"
-const BUGOUT_KB_ID = "6a1817c7-9500-4e38-9ab7-ffd858422036"
 ```
 
 Instantiate the reporter:
@@ -37,8 +36,7 @@ const reporter = new Reporter(
     consent, 
     "<client_id>", 
     "<session_id>", 
-    BUGOUT_TOKEN, 
-    BUGOUT_KB_ID
+    BUGOUT_TOKEN
 )
 ```
 
