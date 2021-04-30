@@ -140,7 +140,7 @@ class HumbugReporter:
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
-        except:
+        except Exception:
             pass
 
     def custom_report(
@@ -237,13 +237,14 @@ Release: `{os_release}`
         )
         if tags is None:
             tags = []
-        tags.extend(
-            [
-                "type:error",
-                "error:{}".format(error.__class__.__name__),
+
+        tags.extend(["type:error", "error:{}".format(error.__class__.__name__)])
+        try:
+            tags.append(
                 "error:{}.{}".format(error.__module__, error.__class__.__name__),
-            ],
-        )
+            )
+        except Exception:
+            pass
         tags.extend(self.system_tags())
 
         report = Report(title=title, content=error_content, tags=tags)
@@ -490,5 +491,5 @@ class Reporter(HumbugReporter):
                     timeout=self.timeout_seconds,
                 )
                 self.report_futures.append(report_future)
-        except:
+        except Exception:
             pass
