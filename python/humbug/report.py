@@ -241,7 +241,7 @@ Release: `{os_release}`
         tags.extend(["type:error", "error:{}".format(error.__class__.__name__)])
         try:
             tags.append(
-                "error:{}.{}".format(error.__module__, error.__class__.__name__),
+                "moduleerror:{}.{}".format(error.__module__, error.__class__.__name__),
             )
         except Exception:
             pass
