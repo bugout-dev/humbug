@@ -6,7 +6,7 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
-
+import inspect
 import logging
 import os
 import pkg_resources
@@ -386,7 +386,10 @@ Release: `{os_release}`
             self.is_loggerhook_set = True
 
     def setup_excepthook(
-        self, tags: Optional[List[str]] = None, publish: bool = True
+        self,
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        modules_whitelist: Optional[List[str]] = None,
     ) -> None:
         """
         Adds error_report with python Exceptions.
@@ -399,8 +402,21 @@ Release: `{os_release}`
             original_excepthook = sys.excepthook
 
             def _hook(exception_type, exception_instance, traceback):
-                self.error_report(error=exception_instance, tags=tags, publish=publish)
                 original_excepthook(exception_type, exception_instance, traceback)
+
+                module = inspect.getmodule(exception_type)
+                report_error = False
+                if modules_whitelist is None:
+                    report_error = True
+                elif module is not None and modules_whitelist is not None:
+                    for whitelisted_module in modules_whitelist:
+                        if module.__name__.startswith(whitelisted_module):
+                            report_error = True
+
+                if report_error:
+                    self.error_report(
+                        error=exception_instance, tags=tags, publish=publish
+                    )
 
             sys.excepthook = _hook
 
