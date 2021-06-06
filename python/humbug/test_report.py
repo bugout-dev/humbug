@@ -89,8 +89,10 @@ class TestReporter(unittest.TestCase):
         self.reporter.publish.assert_called_once()
         publish_args = self.reporter.publish.call_args
         self.assertIsNotNone(publish_args)
-        self.assertEqual(len(publish_args.args), 1)
-        report = publish_args.args[0]
+        # Python 3.7 -> Python 3.8 introduced call_args.args.
+        # We use the older syntax to ensure compatibility with Python 3.6 and 3.7.
+        self.assertEqual(len(publish_args[0]), 1)
+        report = publish_args[0][0]
         self.assertTrue("feature:the_answer" in report.tags)
         self.assertTrue("parameter:arg.0=1" in report.tags)
         self.assertTrue("parameter:everything=lol" in report.tags)
@@ -106,8 +108,8 @@ class TestReporter(unittest.TestCase):
         self.reporter.publish.assert_called_once()
         publish_args = self.reporter.publish.call_args
         self.assertIsNotNone(publish_args)
-        self.assertEqual(len(publish_args.args), 1)
-        report = publish_args.args[0]
+        self.assertEqual(len(publish_args[0]), 1)
+        report = publish_args[0][0]
         self.assertTrue("site:broken" in report.tags)
 
 
