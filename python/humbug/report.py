@@ -13,7 +13,7 @@ import pkg_resources
 import sys
 import time
 import traceback
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 import uuid
 
 import requests
@@ -58,6 +58,7 @@ class HumbugReporter:
         timeout_seconds: int = 10,
         mode: Modes = Modes.DEFAULT,
         url: Optional[str] = None,
+        tags: Optional[List[str]] = None,
     ):
         if url is None:
             url = DEFAULT_URL
@@ -87,6 +88,10 @@ class HumbugReporter:
         self.is_excepthook_set = False
         self.is_loggerhook_set = False
 
+        self.tags: List[str] = []
+        if tags is not None:
+            self.tags = tags
+
     def wait(self) -> None:
         concurrent.futures.wait(
             self.report_futures, timeout=float(self.timeout_seconds)
@@ -113,13 +118,20 @@ class HumbugReporter:
 
         return tags
 
+    def _post_body(self, report: Report) -> Dict[str, Any]:
+        return {
+            "title": report.title,
+            "content": report.content,
+            "tags": report.tags + self.tags,
+        }
+
     def publish(self, report: Report, wait: bool = False) -> None:
         if not self.consent.check():
             return
         if self.bugout_token is None:
             return
 
-        json = {"title": report.title, "content": report.content, "tags": report.tags}
+        json = self._post_body(report)
         headers = {
             "Authorization": "Bearer {}".format(self.bugout_token),
         }
