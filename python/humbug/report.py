@@ -13,7 +13,7 @@ import pkg_resources
 import sys
 import time
 import traceback
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 import uuid
 
 import requests
@@ -377,6 +377,87 @@ Release: `{os_release}`
             self.publish(report, wait=wait)
 
         return report
+
+    def feature_report(
+        self,
+        feature_name: str,
+        parameters: Dict[str, str],
+        tags: Optional[List[str]] = None,
+        publish: bool = True,
+        wait: bool = False,
+    ) -> Report:
+        title = "Feature used: {name}".format(name=feature_name)
+
+        parameters_content = "\n".join(
+            [
+                "- `{parameter_name}` = `{parameter_value}`".format(
+                    parameter_name=key, parameter_value=value
+                )
+                for key, value in parameters.items()
+            ]
+        )
+
+        content = """### User timestamp
+```
+{user_time}
+```
+
+### Information
+
+Feature: {name}
+
+{parameters_content}
+""".format(
+            user_time=int(time.time()),
+            name=feature_name,
+            parameters_content=parameters_content,
+        )
+
+        if tags is None:
+            tags = []
+        tags.append("type:feature")
+        tags.append("feature:{}".format(feature_name))
+        tags.extend(self.system_tags())
+        tags.extend(
+            ["parameter:{}={}".format(key, value) for key, value in parameters.items()]
+        )
+
+        report = Report(title=title, content=content, tags=tags)
+
+        if publish:
+            self.publish(report, wait=wait)
+
+        return report
+
+    def record_call(
+        self,
+        callable: Callable,
+    ) -> Callable:
+        def wrapped_callable(*args, **kwargs):
+            parameters = {**kwargs}
+            for i, arg in enumerate(args):
+                parameters["arg.{}".format(i)] = str(arg)
+
+            self.feature_report(callable.__name__, parameters)
+
+            return callable(*args, **kwargs)
+
+        return wrapped_callable
+
+    def record_errors(
+        self,
+        callable: Callable,
+    ) -> Callable:
+        def wrapped_callable(*args, **kwargs):
+            result = None
+            try:
+                result = callable(*args, **kwargs)
+            except Exception as err:
+                self.error_report(err, tags=["site:{}".format(callable.__name__)])
+                raise err
+            return result
+
+        return wrapped_callable
 
     def setup_loggerhook(
         self,

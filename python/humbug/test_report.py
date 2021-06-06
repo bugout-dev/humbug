@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import MagicMock
 
 from . import consent, report
 
@@ -9,6 +10,7 @@ class TestReporter(unittest.TestCase):
         self.reporter = report.HumbugReporter(
             name="TestReporter", consent=self.consent, tags=["humbug-unit-test"]
         )
+        self.reporter.publish = MagicMock()
 
     def test_system_report_successful(self):
         self.reporter.system_report(publish=False)
@@ -67,6 +69,48 @@ class TestReporter(unittest.TestCase):
                 "tags": report_tags + self.reporter.tags,
             },
         )
+
+    def test_feature_report(self):
+        report = self.reporter.feature_report(
+            "test_feature", {"population": "A", "version": "2"}, publish=False
+        )
+        self.assertTrue("feature:{}".format("test_feature") in report.tags)
+        self.assertTrue("parameter:{}={}".format("population", "A") in report.tags)
+        self.assertTrue("parameter:{}={}".format("version", "2") in report.tags)
+
+    def test_record_call(self):
+        @self.reporter.record_call
+        def the_answer(life, universe=None, everything=None):
+            return 42
+
+        result = the_answer(1, everything="lol")
+
+        self.assertEqual(result, 42)
+        self.reporter.publish.assert_called_once()
+        publish_args = self.reporter.publish.call_args
+        self.assertIsNotNone(publish_args)
+        # Python 3.7 -> Python 3.8 introduced call_args.args.
+        # We use the older syntax to ensure compatibility with Python 3.6 and 3.7.
+        self.assertEqual(len(publish_args[0]), 1)
+        report = publish_args[0][0]
+        self.assertTrue("feature:the_answer" in report.tags)
+        self.assertTrue("parameter:arg.0=1" in report.tags)
+        self.assertTrue("parameter:everything=lol" in report.tags)
+
+    def test_record_errors(self):
+        @self.reporter.record_errors
+        def broken():
+            raise Exception("Go away")
+
+        with self.assertRaises(Exception):
+            broken()
+
+        self.reporter.publish.assert_called_once()
+        publish_args = self.reporter.publish.call_args
+        self.assertIsNotNone(publish_args)
+        self.assertEqual(len(publish_args[0]), 1)
+        report = publish_args[0][0]
+        self.assertTrue("site:broken" in report.tags)
 
 
 if __name__ == "__main__":

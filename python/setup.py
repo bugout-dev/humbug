@@ -6,7 +6,7 @@ with open("README.md") as ifp:
 
 setup(
     name="humbug",
-    version="0.2.3",
+    version="0.2.4",
     packages=find_packages(),
     install_requires=["requests"],
     extras_require={
