@@ -7,7 +7,7 @@ The Humbug JavaScript library.
 ### Using npm
 
 ```bash
-npm install --save humbug
+npm install --save @bugout/humbug
 ```
 
 ### From source
