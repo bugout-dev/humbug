@@ -24,6 +24,8 @@ jobs:
         run: pip install -U pip
       - name: Install dev dependencies
         run: pip install -e .[dev]
+      - name: Mypy install types
+        run: mypy --install-types
       - name: Mypy type check
         run: mypy humbug/
       - name: Black syntax check
