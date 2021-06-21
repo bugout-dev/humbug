@@ -11,7 +11,7 @@ setup(
     package_data={"humbug": ["py.typed"]},
     install_requires=["requests"],
     extras_require={
-        "dev": ["black", "mypy", "wheel"],
+        "dev": ["black", "mypy", "wheel", "types-pkg_resources", "types-requests"],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     description="Humbug: Do you build developer tools? Humbug helps you know your users.",
