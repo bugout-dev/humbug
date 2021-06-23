@@ -6,12 +6,19 @@ with open("README.md") as ifp:
 
 setup(
     name="humbug",
-    version="0.2.5",
+    version="0.2.6",
     packages=find_packages(),
     package_data={"humbug": ["py.typed"]},
     install_requires=["requests"],
     extras_require={
-        "dev": ["black", "mypy", "wheel"],
+        "dev": [
+            "black",
+            "mypy",
+            "wheel",
+            "types-pkg_resources",
+            "types-requests",
+            "types-dataclasses",
+        ],
         "distribute": ["setuptools", "twine", "wheel"],
     },
     description="Humbug: Do you build developer tools? Humbug helps you know your users.",

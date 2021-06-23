@@ -6,6 +6,7 @@ import atexit
 import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
+from functools import wraps
 
 import logging
 import os
@@ -433,6 +434,7 @@ Feature: {name}
         self,
         callable: Callable,
     ) -> Callable:
+        @wraps(callable)
         def wrapped_callable(*args, **kwargs):
             parameters = {**kwargs}
             for i, arg in enumerate(args):
@@ -448,6 +450,7 @@ Feature: {name}
         self,
         callable: Callable,
     ) -> Callable:
+        @wraps(callable)
         def wrapped_callable(*args, **kwargs):
             result = None
             try:
