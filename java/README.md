@@ -22,11 +22,11 @@ public class Example {
         HumbugConsent consent = new HumbugConsent();    
         String token = "<ADD_YOUR_TOKEN_HERE>";   //Your bugout token
         Reporter r = new Reporter(
-        "java app",            //Name of reports
-        consent,               //Consent 
-        "<client_id>",         //Client Id
-        "<session_id>",        //Session Id
-        token                  //bugout-dev Integration token
+                "java app",            //Name of reports
+                 consent,               //Consent 
+                 "<client_id>",         //Client Id
+                 "<session_id>",        //Session Id
+                 token                  //bugout-dev Integration token
         );
 
         String[] tags = new String[]{"<app_version>"};
