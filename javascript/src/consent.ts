@@ -9,13 +9,13 @@ const yes = ["1", "t", "y", "T", "Y", "true", "yes", "True", "Yes", "TRUE", "YES
  */
 export default class HumbugConsent {
     buggerOffStatus: () => boolean
-    public mechanism : Mechanism[] = [];
+    public mechanisms : Mechanism[] = [];
     /**
      * Humbug consent constructor
      * @param mechanisms list of booleans and function that return boolean
      */
     constructor(...mechanisms : Mechanism[]) {
-        this.mechanism = mechanisms;
+        this.mechanisms = mechanisms;
         this.buggerOffStatus = environmentVariableOptOut("BUGGER_OFF", yes)
     }
 
@@ -27,7 +27,7 @@ export default class HumbugConsent {
      * Otherwise, at this point, we can assume consent.
      */
     check(): boolean {
-        for (const el of this.mechanism) {
+        for (const el of this.mechanisms) {
             if (typeof el === "boolean") {
                 if (!el)
                     return false;
