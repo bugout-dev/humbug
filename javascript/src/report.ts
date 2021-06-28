@@ -128,7 +128,7 @@ ${this.systemInformation.nodeVersion}
         return report
     }
     /**
-     * Publish cought error to bugout.dev
+     * Publish caught error to bugout.dev
      * @param error error that is cought
      * @param tags  optional reports to include in the report
      * @param publish flag, will not be published if not set true
