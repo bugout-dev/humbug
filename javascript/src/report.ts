@@ -159,7 +159,7 @@ ${error.stack}
         if (tags !== undefined) {
             report.tags.push(...tags)
         }
-        report.tags.push(...["type:error", `error:${error.name}`, `error_message:${error.message}`])
+        report.tags.push(...["type:error", `error:${error.name}`])
         if (publish) {
             await this.publish(report)
         }
