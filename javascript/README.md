@@ -56,8 +56,10 @@ process.on('uncaughtException', err => {
 Add to your PersonalError class `errorReport`:
 ```javascript
 class PersonalError extends Error {
-    constructor(err: Error) {
-        reporter.errorReport(err, [version], true)
-        super()
+    constructor(messsage = "") {
+        super(messsage)
+        this.name = "PersonalError"
+        reporter.errorReport(this, [version], true)
     }
+}
 ```
