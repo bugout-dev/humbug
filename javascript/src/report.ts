@@ -134,7 +134,7 @@ ${this.systemInformation.nodeVersion}
      * @param publish flag, will not be published if not set true
      */
     async errorReport(
-        error: any, tags?: string[], publish: boolean = true
+        error: Error, tags?: string[], publish: boolean = true
     ): Promise<Report> {
         const time = new Date().toISOString()
         const title = `${this.name} - ${error.name}`
@@ -159,7 +159,7 @@ ${error.stack}
         if (tags !== undefined) {
             report.tags.push(...tags)
         }
-        report.tags.push(...["type:error"])
+        report.tags.push(...["type:error", `error:${error.name}`, `message:${error.message}`])
         if (publish) {
             await this.publish(report)
         }
