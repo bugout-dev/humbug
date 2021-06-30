@@ -1,4 +1,4 @@
-package humbug;
+package com.bugout.humbug;
 
 /**
  * Represents report that will be send to bugout.dev server
@@ -8,7 +8,7 @@ public class Report {
     private String content;
     private String[] tags;
 
-    public Report(String title, String content, String[] tags) {
+    public Report(String title, String content, String ...tags) {
         this.title = title;
         this.content = content;
         this.tags = tags;

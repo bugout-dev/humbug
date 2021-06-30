@@ -1,14 +1,24 @@
-package humbug;
+package com.bugout.humbug;
 
 /**
  * Represents system information and JVM properties
  */
-public abstract class SystemInformation {
+public class SystemInformation {
     private final String os;
     private final String os_release;
     private final String arch;
     private final String java_version;
     private final String java_vm_name;
+
+    public SystemInformation() {
+        this(
+                System.getProperty("os.name"),
+                System.getProperty("os.arch"),
+                System.getProperty("os.version"),
+                System.getProperty("java.vm.name"),
+                System.getProperty("java.version")
+        );
+    }
 
     public SystemInformation(String os, String os_release, String arch, String java_vm_name, String java_version) {
         this.os = os;
@@ -39,13 +49,7 @@ public abstract class SystemInformation {
     }
 
     public static SystemInformation generateSystemInformation() {
-        String os = System.getProperty("os.name");
-        String arch = System.getProperty("os.arch");
-        String os_release = System.getProperty("os.version");
-        String java_vm_name = System.getProperty("java.vm.name");
-        String java_version = System.getProperty("java.version");
-
-        return new SystemInformation(os,  os_release, arch, java_vm_name, java_version) {};
+        return new SystemInformation();
     }
 
 }

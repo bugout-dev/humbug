@@ -1,5 +1,6 @@
-package humbug;
+package com.bugout.humbug;
 
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -26,7 +27,7 @@ public class Reporter {
     private String bugoutToken;
 
     public Reporter(String name, HumbugConsent consent, String clientId, String sessionId, String bugoutToken) {
-        this.systemInformation = SystemInformation.generateSystemInformation();
+        this.systemInformation = new SystemInformation();
         this.name = name;
         this.consent = consent;
         this.clientId = clientId;
@@ -55,29 +56,27 @@ public class Reporter {
     /**
      *
      * @param report Report to publish
-     * @return null if successfully published
      * @throws IOException if failed to publish
      */
-    private Object publish(Report report) throws IOException {
+    public void publish(Report report) throws IOException{
         if (!this.consent.check())
-            return null;
-
+            return;
         JSONObject json = new JSONObject();
         json.put("title", report.getTitle());
         json.put("content", report.getContent());
         json.put("tags", report.getTags());
+        StringEntity params = new StringEntity(json.toString());
 
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-            HttpPost request = new HttpPost(apiURL + "/humbug/reports");
-            StringEntity params = new StringEntity(json.toString());
-            request.addHeader("content-type", "application/json");
-            request.addHeader("Authorization", "Bearer " + bugoutToken);
-            request.setEntity(params);
-            httpClient.execute(request);
+        HttpPost request = new HttpPost(apiURL + "/humbug/reports");
+        request.addHeader("content-type", "application/json");
+        request.addHeader("Authorization", "Bearer " + bugoutToken);
+        request.setEntity(params);
 
-        }
+        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
+        CloseableHttpResponse response =  httpClient.execute(request);
 
-        return null;
+        if (response.getStatusLine().getStatusCode() != 200)
+            throw new IOException("Failed to publish report");
     }
 
     /**
@@ -133,11 +132,40 @@ public class Reporter {
     }
 
     /**
+     *
+     * @param title title of report
+     * @param content content of report
+     * @param tags optional tags of report
+     * @return Report if successfully reported, @null, otherwise
+     */
+    public Report customReport(String title, String content, String ...tags) {
+        LocalDateTime time = LocalDateTime.now();
+        content = new ContentBuilder()
+                .addHeader("User timestamp")
+                .addMultilineCode(time.toString())
+                .addLine()
+                .addString(content)
+                .toString();
+
+        String[] allTags = Stream.concat(Stream.concat(Arrays.stream(getSystemTags()), Arrays.stream(tags)), Arrays.stream(new String[]{"type:custom"}))
+                .toArray(String[]::new);
+        Report report = new Report(title, content, allTags);
+        try {
+            publish(report);
+        }
+        catch (Exception e) {
+            System.err.println("Cannot publish to server:" + e);
+            return null;
+        }
+        return report;
+    }
+
+    /**
      * Reports system information to bugout.dev
      * @param tags additional tags to report
      * @return Report if successfully reported, @null, otherwise
      */
-    public Report systemReport(String[] tags) {
+    public Report systemReport(String ...tags) {
         String  title = this.name + " - System information";
         String[] allTags =  Stream.concat(Arrays.stream(getSystemTags()), Arrays.stream(tags))
                                     .toArray(String[]::new);
@@ -148,6 +176,7 @@ public class Reporter {
             publish(report);
         }
         catch (Exception e) {
+            System.err.println("Cannot publish to server:" + e);
             return null;
         }
         return report;
@@ -160,10 +189,10 @@ public class Reporter {
      * @param tags Additional tags to add to report
      * @return
      */
-    public Report errorReport(Exception exception,  String[] tags) {
+    public Report errorReport(Exception exception,  String ...tags) {
         String title = this.name + " - " + exception.getClass().getName();
 
-        String[] allTags = Stream.concat(Stream.concat(Arrays.stream(getSystemTags()), Arrays.stream(tags)), Arrays.stream(new String[]{"type:error"}))
+        String[] allTags = Stream.concat(Stream.concat(Arrays.stream(getSystemTags()), Arrays.stream(tags)), Arrays.stream(new String[]{"type:error", "error:"+exception.getClass().getName()}))
                 .toArray(String[]::new);
 
         Report r = new Report(title, generateErrorContent(exception), allTags);
