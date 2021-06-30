@@ -50,7 +50,10 @@ export default class Reporter {
         }
         return tags
     }
-
+    /**
+     * Publish given report to bugout.dev
+     * @param report Report to publish
+     */
     async publish(report: Report): Promise<any> {
         if (this.consent.check() === false) {
             return null
@@ -76,6 +79,12 @@ export default class Reporter {
         } catch { return null }
     }
 
+    /**
+     * Sends report to bugout.dev with system information,
+     * includes os and node params
+     * @param tags optional tags to include in report
+     * @param publish flag, will not be published if not set true
+     */
     async systemReport(
         tags?: string[], publish: boolean = true
     ): Promise<Report> {
@@ -118,9 +127,14 @@ ${this.systemInformation.nodeVersion}
 
         return report
     }
-
+    /**
+     * Publish caught error to bugout.dev
+     * @param error error that is cought
+     * @param tags  optional reports to include in the report
+     * @param publish flag, will not be published if not set true
+     */
     async errorReport(
-        error: any, tags?: string[], publish: boolean = true
+        error: Error, tags?: string[], publish: boolean = true
     ): Promise<Report> {
         const time = new Date().toISOString()
         const title = `${this.name} - ${error.name}`
@@ -145,7 +159,7 @@ ${error.stack}
         if (tags !== undefined) {
             report.tags.push(...tags)
         }
-        report.tags.push(...["type:error"])
+        report.tags.push(...["type:error", `error:${error.name}`])
         if (publish) {
             await this.publish(report)
         }

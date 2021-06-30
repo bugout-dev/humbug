@@ -7,15 +7,14 @@ The Humbug JavaScript library.
 ### Using npm
 
 ```bash
-npm install --save humbug
+npm install --save @bugout/humbug
 ```
 
 ### From source
 
 Clone this repository and enter this directory. Make sure you have node.js installed and then build javascript library from typescript:
 ```bash
-npm install --save typescript axios
-npm install --save-dev tslint @types/node
+npm install 
 npm run build
 ```
 
@@ -57,8 +56,10 @@ process.on('uncaughtException', err => {
 Add to your PersonalError class `errorReport`:
 ```javascript
 class PersonalError extends Error {
-    constructor(err: Error) {
-        reporter.errorReport(err, [version], true)
-        super()
+    constructor(messsage = "") {
+        super(messsage)
+        this.name = "PersonalError"
+        reporter.errorReport(this, [version], true)
     }
+}
 ```
