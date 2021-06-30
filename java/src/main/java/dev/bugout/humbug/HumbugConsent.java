@@ -1,4 +1,4 @@
-package com.bugout.humbug;
+package dev.bugout.humbug;
 
 import java.util.List;
 

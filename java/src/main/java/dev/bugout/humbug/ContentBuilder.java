@@ -1,4 +1,4 @@
-package com.bugout.humbug;
+package dev.bugout.humbug;
 
 /**
  * Report content builder to easily work with markdown.

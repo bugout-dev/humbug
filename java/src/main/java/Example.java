@@ -1,6 +1,6 @@
-import com.bugout.humbug.ContentBuilder;
-import com.bugout.humbug.HumbugConsent;
-import com.bugout.humbug.Reporter;
+import dev.bugout.humbug.ContentBuilder;
+import dev.bugout.humbug.HumbugConsent;
+import dev.bugout.humbug.Reporter;
 
 import java.io.FileInputStream;
 import java.io.IOException;

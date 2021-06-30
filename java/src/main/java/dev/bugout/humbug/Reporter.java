@@ -1,4 +1,4 @@
-package com.bugout.humbug;
+package dev.bugout.humbug;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;

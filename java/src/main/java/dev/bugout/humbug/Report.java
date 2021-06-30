@@ -1,4 +1,4 @@
-package com.bugout.humbug;
+package dev.bugout.humbug;
 
 /**
  * Represents report that will be send to bugout.dev server

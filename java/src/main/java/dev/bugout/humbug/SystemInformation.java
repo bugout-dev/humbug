@@ -1,4 +1,4 @@
-package com.bugout.humbug;
+package dev.bugout.humbug;
 
 /**
  * Represents system information and JVM properties
