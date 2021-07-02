@@ -6,7 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class Example {
+public class HumbugDemo {
     public static void main(String[] args) {
 
         HumbugConsent c = new HumbugConsent(()-> true, ()-> true);
