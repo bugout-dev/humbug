@@ -15,7 +15,7 @@ public class HumbugDemo {
 
         Reporter r = new Reporter("java app report", c, "200", "201", token);
 
-        r.systemReport("0.0.2", "test");  //Reporting system information
+        r.systemReport("0.0.2", "demo", "test");  //Reporting system information
 
         // Exception report examples:
         try {
