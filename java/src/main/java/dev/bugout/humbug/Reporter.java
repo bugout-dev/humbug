@@ -1,18 +1,16 @@
 package dev.bugout.humbug;
 
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import org.json.JSONObject;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.time.LocalDateTime;
+
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
+import java.util.Date;
 
+//
 /**
  * Reporter engine that will send reports to bugout.dev server
  */
@@ -61,22 +59,26 @@ public class Reporter {
     public void publish(Report report) throws IOException{
         if (!this.consent.check())
             return;
+        URL url = new URL(apiURL + "/humbug/reports");
+        HttpURLConnection con = (HttpURLConnection) url.openConnection();
+        con.setRequestMethod("POST");
+        con.setRequestProperty("Content-Type", "application/json");
+        con.setRequestProperty("Authorization", "Bearer " + bugoutToken);
+        con.setDoOutput(true);
+
         JSONObject json = new JSONObject();
         json.put("title", report.getTitle());
         json.put("content", report.getContent());
         json.put("tags", report.getTags());
-        StringEntity params = new StringEntity(json.toString());
 
-        HttpPost request = new HttpPost(apiURL + "/humbug/reports");
-        request.addHeader("content-type", "application/json");
-        request.addHeader("Authorization", "Bearer " + bugoutToken);
-        request.setEntity(params);
+        try(OutputStream os = con.getOutputStream()) {
+            byte[] input = json.toString().getBytes(StandardCharsets.UTF_8);
+            os.write(input, 0, input.length);
+        }
+        if (con.getResponseCode() != 200) {
+            throw new IOException("Invalid response code");
+        }
 
-        CloseableHttpClient httpClient = HttpClientBuilder.create().build();
-        CloseableHttpResponse response =  httpClient.execute(request);
-
-        if (response.getStatusLine().getStatusCode() != 200)
-            throw new IOException("Failed to publish report");
     }
 
     /**
@@ -84,7 +86,8 @@ public class Reporter {
      * @return System information content in markdown
      */
     private String generateSystemContent() {
-        LocalDateTime time = LocalDateTime.now();
+        //LocalDateTime time = LocalDateTime.now();
+        Date time = new Date();
         ContentBuilder c = new ContentBuilder()
                 .addHeader("User timestamp")
                 .addMultilineCode(time.toString())
@@ -107,7 +110,7 @@ public class Reporter {
      * @return Error content in markdown
      */
     private String generateErrorContent(Exception error) {
-        LocalDateTime time = LocalDateTime.now();
+        Date time = new Date();
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         error.printStackTrace(pw);
@@ -139,7 +142,7 @@ public class Reporter {
      * @return Report if successfully reported, @null, otherwise
      */
     public Report customReport(String title, String content, String ...tags) {
-        LocalDateTime time = LocalDateTime.now();
+        Date time = new Date();
         content = new ContentBuilder()
                 .addHeader("User timestamp")
                 .addMultilineCode(time.toString())
@@ -147,14 +150,14 @@ public class Reporter {
                 .addString(content)
                 .toString();
 
-        String[] allTags = Stream.concat(Stream.concat(Arrays.stream(getSystemTags()), Arrays.stream(tags)), Arrays.stream(new String[]{"type:custom"}))
-                .toArray(String[]::new);
+        String[] allTags =  Stream.concat(Arrays.stream(new String[] {"type:custom"}), Arrays.stream(tags))
+                                    .toArray(String[]::new);
         Report report = new Report(title, content, allTags);
         try {
             publish(report);
         }
         catch (Exception e) {
-            System.err.println("Cannot publish to server:" + e);
+            System.err.println("Problem occured while publishing report:" + e);
             return null;
         }
         return report;
@@ -176,7 +179,7 @@ public class Reporter {
             publish(report);
         }
         catch (Exception e) {
-            System.err.println("Cannot publish to server:" + e);
+            System.err.println("Problem occured while publishing report:" + e);
             return null;
         }
         return report;
@@ -201,6 +204,7 @@ public class Reporter {
             publish(r);
         }
         catch (Exception e) {
+            System.err.println("Problem occured while publishing report:" + e);
             return null;
         }
         return r;
