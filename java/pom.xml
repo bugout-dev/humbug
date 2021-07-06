@@ -4,7 +4,7 @@
 
     <groupId>dev.bugout.humbug</groupId>
     <artifactId>humbug</artifactId>
-    <version>0.0.2</version>
+    <version>0.0.3</version>
     <build>
         <plugins>
             <plugin>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20180130</version>
+            <version>20210307</version>
         </dependency>
     </dependencies>
     <distributionManagement>
