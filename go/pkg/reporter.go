@@ -8,9 +8,9 @@ import (
 )
 
 type reportRequest struct {
-	Title       string   `json:"title"`
-	Content     string   `json:"content"`
-	Tags        []string `json:"tags"`
+	Title   string   `json:"title"`
+	Content string   `json:"content"`
+	Tags    []string `json:"tags"`
 }
 
 type Reporter interface {
@@ -18,15 +18,16 @@ type Reporter interface {
 	Untag(key string, modifier string)
 	Tags() []string
 	Publish(report Report) error
+	PublishBulk(report Report) error
 }
 
 type HumbugReporter struct {
-	BaseURL           string
-	clientID          string
-	sessionID         string
-	consent           Consent
-	reporterToken     string
-	tags              map[string]bool
+	BaseURL       string
+	clientID      string
+	sessionID     string
+	consent       Consent
+	reporterToken string
+	tags          map[string]bool
 }
 
 func (reporter *HumbugReporter) Tag(key, modifier string) {
@@ -106,21 +107,85 @@ func (reporter *HumbugReporter) Publish(report Report) {
 		request.Header.Add("Content-Type", "application/json")
 		request.Header.Add("Accept", "application/json")
 		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
-	
+
 		client.Do(request)
 
 	}
 }
+
+func generateChunks(xs []Report, chunkSize int) [][]Report {
+	if len(xs) == 0 {
+		return nil
+	}
+	divided := make([][]Report, (len(xs)+chunkSize-1)/chunkSize)
+	prev := 0
+	i := 0
+	till := len(xs) - chunkSize
+	for prev < till {
+		next := prev + chunkSize
+		divided[i] = xs[prev:next]
+		prev = next
+		i++
+	}
+	divided[i] = xs[prev:]
+	return divided
+}
+
+func (reporter *HumbugReporter) PublishBulk(reports []Report) {
+	defer func() {
+		// TODO(zomglings): Same as for Publish
+		recover()
+	}()
+
+	userHasConsented := reporter.consent.Check()
+
+	if userHasConsented {
+		bulkEntriesRoute := fmt.Sprintf("%s/humbug/reports/bulk", reporter.BaseURL)
+		reportChunks := generateChunks(reports, 1000)
+
+		for _, chunk := range reportChunks {
+			var reportsRequestBody []reportRequest
+			for _, report := range chunk {
+				tags := MergeTags(report.Tags, reporter.Tags())
+				requestBody := reportRequest{
+					Title:   report.Title,
+					Content: report.Content,
+					Tags:    tags,
+				}
+				reportsRequestBody = append(reportsRequestBody, requestBody)
+			}
+
+			requestBuffer := new(bytes.Buffer)
+			json.NewEncoder(requestBuffer).Encode(reportsRequestBody)
+
+			request, _ := http.NewRequest("POST", bulkEntriesRoute, requestBuffer)
+
+			client := &http.Client{}
+			request.Header.Add("Content-Type", "application/json")
+			request.Header.Add("Accept", "application/json")
+			request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
+
+			query := request.URL.Query()
+			query.Add("sync", "true")
+			request.URL.RawQuery = query.Encode()
+
+			client.Do(request)
+		}
+
+	}
+
+}
+
 func (reporter *HumbugReporter) SetBaseURL(baseURL string) {
-    reporter.BaseURL = baseURL
+	reporter.BaseURL = baseURL
 }
 
 func CreateHumbugReporter(consent Consent, clientID string, sessionID string, reporterToken string) (*HumbugReporter, error) {
 	reporter := HumbugReporter{
-		consent:           consent,
-		clientID:          clientID,
-		sessionID:         sessionID,
-		reporterToken:     reporterToken,
+		consent:       consent,
+		clientID:      clientID,
+		sessionID:     sessionID,
+		reporterToken: reporterToken,
 	}
 	reporter.Tag("session", reporter.sessionID)
 	if reporter.BaseURL == "" {
