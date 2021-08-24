@@ -113,24 +113,6 @@ func (reporter *HumbugReporter) Publish(report Report) {
 	}
 }
 
-func generateChunks(xs []Report, chunkSize int) [][]Report {
-	if len(xs) == 0 {
-		return nil
-	}
-	divided := make([][]Report, (len(xs)+chunkSize-1)/chunkSize)
-	prev := 0
-	i := 0
-	till := len(xs) - chunkSize
-	for prev < till {
-		next := prev + chunkSize
-		divided[i] = xs[prev:next]
-		prev = next
-		i++
-	}
-	divided[i] = xs[prev:]
-	return divided
-}
-
 func (reporter *HumbugReporter) PublishBulk(reports []Report) {
 	defer func() {
 		// TODO(zomglings): Same as for Publish
@@ -141,36 +123,33 @@ func (reporter *HumbugReporter) PublishBulk(reports []Report) {
 
 	if userHasConsented {
 		bulkEntriesRoute := fmt.Sprintf("%s/humbug/reports/bulk", reporter.BaseURL)
-		reportChunks := generateChunks(reports, 1000)
 
-		for _, chunk := range reportChunks {
-			var reportsRequestBody []reportRequest
-			for _, report := range chunk {
-				tags := MergeTags(report.Tags, reporter.Tags())
-				requestBody := reportRequest{
-					Title:   report.Title,
-					Content: report.Content,
-					Tags:    tags,
-				}
-				reportsRequestBody = append(reportsRequestBody, requestBody)
+		var reportsRequestBody []reportRequest
+		for _, report := range reports {
+			tags := MergeTags(report.Tags, reporter.Tags())
+			requestBody := reportRequest{
+				Title:   report.Title,
+				Content: report.Content,
+				Tags:    tags,
 			}
-
-			requestBuffer := new(bytes.Buffer)
-			json.NewEncoder(requestBuffer).Encode(reportsRequestBody)
-
-			request, _ := http.NewRequest("POST", bulkEntriesRoute, requestBuffer)
-
-			client := &http.Client{}
-			request.Header.Add("Content-Type", "application/json")
-			request.Header.Add("Accept", "application/json")
-			request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
-
-			query := request.URL.Query()
-			query.Add("sync", "true")
-			request.URL.RawQuery = query.Encode()
-
-			client.Do(request)
+			reportsRequestBody = append(reportsRequestBody, requestBody)
 		}
+
+		requestBuffer := new(bytes.Buffer)
+		json.NewEncoder(requestBuffer).Encode(reportsRequestBody)
+
+		request, _ := http.NewRequest("POST", bulkEntriesRoute, requestBuffer)
+
+		client := &http.Client{}
+		request.Header.Add("Content-Type", "application/json")
+		request.Header.Add("Accept", "application/json")
+		request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", reporter.reporterToken))
+
+		query := request.URL.Query()
+		query.Add("sync", "true")
+		request.URL.RawQuery = query.Encode()
+
+		client.Do(request)
 
 	}
 
