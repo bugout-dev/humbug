@@ -11,7 +11,7 @@ Contents
 <dependency>
     <groupId>dev.bugout.humbug</groupId>
     <artifactId>humbug</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.3</version>
 </dependency>
 ```
 #### Add github repository to your `pom.xml` under `<repositories>` parameter, so maven can understand that it needs to download library from github packages

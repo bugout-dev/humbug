@@ -4,7 +4,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import org.json.JSONObject;
-
+import org.json.JSONArray;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -69,8 +69,7 @@ public class Reporter {
         JSONObject json = new JSONObject();
         json.put("title", report.getTitle());
         json.put("content", report.getContent());
-        json.put("tags", report.getTags());
-
+        json.put("tags", new JSONArray(report.getTags()));
         try(OutputStream os = con.getOutputStream()) {
             byte[] input = json.toString().getBytes(StandardCharsets.UTF_8);
             os.write(input, 0, input.length);
