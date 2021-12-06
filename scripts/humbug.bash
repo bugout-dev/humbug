@@ -64,8 +64,8 @@ echo "Processing in batches of size BUGOUT_SEARCH_LIMIT=$BUGOUT_SEARCH_LIMIT"
 OFFSET=0
 while [ "$OFFSET" -lt "$TOTAL_RESULTS" ]
 do
-    OUTPUT_FILE="$BUGOUT_OUTPUT_DIRECTORY/$OFFSET.json"
+    OUTPUT_FILE="$BUGOUT_OUTPUT_DIRECTORY/$(printf "%07d" $OFFSET).json"
     echo "Processing $BUGOUT_SEARCH_LIMIT items with offset $OFFSET into $OUTPUT_FILE"
-    bugout entries search "$SEARCH_QUERY" --limit "$BUGOUT_SEARCH_LIMIT" --offset "$OFFSET" > "$OUTPUT_FILE"
+    bugout entries search "$SEARCH_QUERY" --params order=asc --limit "$BUGOUT_SEARCH_LIMIT" --offset "$OFFSET" > "$OUTPUT_FILE"
     OFFSET=$((OFFSET + BUGOUT_SEARCH_LIMIT))
 done
