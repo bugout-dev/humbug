@@ -8,7 +8,10 @@ class TestReporter(unittest.TestCase):
     def setUp(self):
         self.consent = consent.HumbugConsent(True)
         self.reporter = report.HumbugReporter(
-            name="TestReporter", consent=self.consent, tags=["humbug-unit-test"]
+            name="TestReporter",
+            consent=self.consent,
+            tags=["humbug-unit-test"],
+            blacklisted_keys=["private"],
         )
         self.reporter.publish = MagicMock()
 
@@ -72,11 +75,22 @@ class TestReporter(unittest.TestCase):
 
     def test_feature_report(self):
         report = self.reporter.feature_report(
-            "test_feature", {"population": "A", "version": "2"}, publish=False
+            "test_feature",
+            {
+                "population": "A",
+                "version": "2",
+                "private": "confidential",
+                "inner": {"private": "confidential"},
+            },
+            publish=False,
         )
         self.assertTrue("feature:{}".format("test_feature") in report.tags)
         self.assertTrue("parameter:{}={}".format("population", "A") in report.tags)
         self.assertTrue("parameter:{}={}".format("version", "2") in report.tags)
+        self.assertTrue(
+            "parameter:{}={}".format("private", "confidential") not in report.tags
+        )
+        self.assertTrue("parameter:{}={{}}".format("inner") in report.tags)
 
     def test_record_call(self):
         @self.reporter.record_call
