@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock
 
-from . import consent, report
+from . import consent, report, blacklist
 
 
 class TestReporter(unittest.TestCase):
@@ -11,7 +11,8 @@ class TestReporter(unittest.TestCase):
             name="TestReporter",
             consent=self.consent,
             tags=["humbug-unit-test"],
-            blacklisted_keys=["private"],
+            blacklist_keys=["private"],
+            blacklist_fn=blacklist.filter_parameters_by_key,
         )
         self.reporter.publish = MagicMock()
 
@@ -91,6 +92,21 @@ class TestReporter(unittest.TestCase):
             "parameter:{}={}".format("private", "confidential") not in report.tags
         )
         self.assertTrue("parameter:{}={{}}".format("inner") in report.tags)
+
+    def test_feature_report_not_apply_blacklist(self):
+        report = self.reporter.feature_report(
+            "test_feature_not_apply_blacklist",
+            {
+                "private": "confidential",
+                "inner": {"private": "confidential"},
+            },
+            publish=False,
+            apply_blacklist=False,
+        )
+        self.assertTrue(
+            "parameter:{}={}".format("private", "confidential") in report.tags
+        )
+        self.assertTrue("parameter:{}={{}}".format("inner") not in report.tags)
 
     def test_record_call(self):
         @self.reporter.record_call

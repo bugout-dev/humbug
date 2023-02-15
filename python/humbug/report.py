@@ -60,7 +60,10 @@ class HumbugReporter:
         mode: Modes = Modes.DEFAULT,
         url: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        blacklisted_keys: Optional[List[str]] = None,
+        blacklist_keys: List[str] = [],
+        blacklist_fn: Optional[
+            Callable[[List[str], Dict[str, Any]], Dict[str, Any]]
+        ] = None,
     ):
         if url is None:
             url = DEFAULT_URL
@@ -94,9 +97,8 @@ class HumbugReporter:
         if tags is not None:
             self.tags = tags
 
-        self.blacklisted_keys: List[str] = []
-        if blacklisted_keys is not None:
-            self.blacklisted_keys = blacklisted_keys
+        self.blacklist_keys = blacklist_keys
+        self.blacklist_fn = blacklist_fn
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -123,44 +125,6 @@ class HumbugReporter:
             tags.append("client:{}".format(self.client_id))
 
         return tags
-
-    def _apply_blacklist_to_parameters(
-        self, parameters: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """
-        Applies blacklist filter to provided parameters and to 2nd layer of
-        inner dictionary parameter if exists.
-        """
-        whitelisted_parameters: Dict[str, Any] = {}
-
-        for key in parameters.keys():
-            if key in self.blacklisted_keys:
-                continue
-
-            key_as_dict: Optional[Dict[str, Any]] = None
-            for d in dir(parameters[key]):
-                if d == "keys":
-                    key_as_dict = parameters[key]
-                    break
-                elif d == "dict":  # Pydantic models support
-                    key_as_dict = parameters[key].dict()
-                    break
-
-            if key_as_dict is not None:
-                try:
-                    inner_dict: Dict[str, str] = {}
-                    for inner_key in key_as_dict.keys():
-                        if inner_key in self.blacklisted_keys:
-                            continue
-                        inner_dict[inner_key] = str(key_as_dict[inner_key])
-                    whitelisted_parameters[key] = inner_dict
-                    continue
-                except Exception:
-                    pass
-
-            whitelisted_parameters[key] = str(parameters[key])
-
-        return whitelisted_parameters
 
     def _post_body(self, report: Report) -> Dict[str, Any]:
         return {
@@ -429,12 +393,12 @@ Release: `{os_release}`
         tags: Optional[List[str]] = None,
         publish: bool = True,
         wait: bool = False,
-        blacklist_apply: bool = True,
+        apply_blacklist: bool = True,
     ) -> Report:
         title = "Feature used: {name}".format(name=feature_name)
 
-        if blacklist_apply:
-            parameters = self._apply_blacklist_to_parameters(parameters)
+        if apply_blacklist and self.blacklist_fn is not None:
+            parameters = self.blacklist_fn(self.blacklist_keys, parameters)
 
         parameters_content = "\n".join(
             [
