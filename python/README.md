@@ -126,6 +126,20 @@ set `MY_APP_NO_CONSENT=1`, then again no reports will get sent back.
 On the other hand, if the user has set `MY_APP_CONSENT=true` and left `MY_APP_NO_CONSENT` unset or
 set to a value other than `1`, Humbug will send you any reports you have configured.
 
+### Blacklist
+
+There is a possibility to provide custom functions or use predefined at `blacklist.filter_parameters_by_key` for blacklist functionality.
+
+Just add a list of keys you want to remove from the `feature_report` result and specify the function:
+
+```python
+reporter = Reporter(
+    ...
+    blacklist_keys=["private"],
+    blacklist_fn=blacklist.filter_parameters_by_key,
+)
+```
+
 ### Example: activeloopai/Hub
 
 [This pull request](https://github.com/activeloopai/Hub/pull/624) shows how
