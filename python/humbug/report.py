@@ -60,7 +60,6 @@ class HumbugReporter:
         mode: Modes = Modes.DEFAULT,
         url: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        blacklist_keys: List[str] = [],
         blacklist_fn: Optional[
             Callable[[List[str], Dict[str, Any]], Dict[str, Any]]
         ] = None,
@@ -97,7 +96,6 @@ class HumbugReporter:
         if tags is not None:
             self.tags = tags
 
-        self.blacklist_keys = blacklist_keys
         self.blacklist_fn = blacklist_fn
 
     def wait(self) -> None:
@@ -398,7 +396,7 @@ Release: `{os_release}`
         title = "Feature used: {name}".format(name=feature_name)
 
         if apply_blacklist and self.blacklist_fn is not None:
-            parameters = self.blacklist_fn(self.blacklist_keys, parameters)
+            parameters = self.blacklist_fn(parameters)
 
         parameters_content = "\n".join(
             [
