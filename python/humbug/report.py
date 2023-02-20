@@ -60,9 +60,7 @@ class HumbugReporter:
         mode: Modes = Modes.DEFAULT,
         url: Optional[str] = None,
         tags: Optional[List[str]] = None,
-        blacklist_fn: Optional[
-            Callable[[List[str], Dict[str, Any]], Dict[str, Any]]
-        ] = None,
+        blacklist_fn: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
     ):
         if url is None:
             url = DEFAULT_URL
