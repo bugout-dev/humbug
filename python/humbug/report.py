@@ -60,6 +60,7 @@ class HumbugReporter:
         mode: Modes = Modes.DEFAULT,
         url: Optional[str] = None,
         tags: Optional[List[str]] = None,
+        blacklist_fn: Optional[Callable[[Dict[str, Any]], Dict[str, Any]]] = None,
     ):
         if url is None:
             url = DEFAULT_URL
@@ -92,6 +93,8 @@ class HumbugReporter:
         self.tags: List[str] = []
         if tags is not None:
             self.tags = tags
+
+        self.blacklist_fn = blacklist_fn
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -382,12 +385,16 @@ Release: `{os_release}`
     def feature_report(
         self,
         feature_name: str,
-        parameters: Dict[str, str],
+        parameters: Dict[str, Any],
         tags: Optional[List[str]] = None,
         publish: bool = True,
         wait: bool = False,
+        apply_blacklist: bool = True,
     ) -> Report:
         title = "Feature used: {name}".format(name=feature_name)
+
+        if apply_blacklist and self.blacklist_fn is not None:
+            parameters = self.blacklist_fn(parameters)
 
         parameters_content = "\n".join(
             [
@@ -438,7 +445,7 @@ Feature: {name}
         def wrapped_callable(*args, **kwargs):
             parameters = {**kwargs}
             for i, arg in enumerate(args):
-                parameters["arg.{}".format(i)] = str(arg)
+                parameters["arg.{}".format(i)] = arg
 
             self.feature_report(callable.__name__, parameters)
 

@@ -126,11 +126,49 @@ set `MY_APP_NO_CONSENT=1`, then again no reports will get sent back.
 On the other hand, if the user has set `MY_APP_CONSENT=true` and left `MY_APP_NO_CONSENT` unset or
 set to a value other than `1`, Humbug will send you any reports you have configured.
 
-### Example: activeloopai/Hub
+### Blacklisting parameters in feature reports
 
-[This pull request](https://github.com/activeloopai/Hub/pull/624) shows how
+Arguments to functions and other callables can sometimes contain sensitive information which you may
+not want to include in Humbug reports.
+
+Blacklist functions allow you to specify which parameters from an argument list to filter out of your
+feature reports.
+
+#### `blacklist.generate_filter_parameters_by_key_fn`
+
+If you would just like to filter out all paramters with a given name, you can use the `blacklist.generate_filter_parameters_by_key_fn`.
+
+For example, to ignore all parameters named `token` (case insensitive), you would instantiate your
+`HumbugReporter` as follows:
+
+```python
+reporter = HumbugReporter(
+    ...,
+    blacklist_fn=blacklist.generate_filter_parameters_by_key_fn(["token"]),
+)
+```
+
+#### Custom blacklist functions
+
+You could also implement a custom blacklist function to remove all parameters that contained the substring
+`token` (case insensitive):
+
+```python
+def blacklist_token_parameters_fn(params: Dict[str, Any]) -> Dict[str, Any]:
+    admissible_params = {k:v for k, v in params.items() if "token" not in k}
+    return admissible_params
+
+reporter = HumbugReporter(
+    ...,
+    blacklist_fn=blacklist_token_parameters_fn
+)
+```
+
+### Case study: activeloopai/deeplake
+
+[This pull request](https://github.com/activeloopai/deeplake/pull/624) shows how
 [Activeloop](https://www.activeloop.ai/) integrated Humbug into their popular
-[`Hub`](https://github.com/activeloopai/Hub) tool.
+[`deeplake`](https://github.com/activeloopai/deeplake) tool.
 
 This example shows how to use Humbug to record consent in a configuration file that the user
 can modify at will. It also shows how to add custom tags to your Humbug reports.

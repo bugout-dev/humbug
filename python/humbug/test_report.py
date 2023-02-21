@@ -1,14 +1,19 @@
 import unittest
 from unittest.mock import MagicMock
 
-from . import consent, report
+from . import consent, report, blacklist
 
 
 class TestReporter(unittest.TestCase):
     def setUp(self):
         self.consent = consent.HumbugConsent(True)
         self.reporter = report.HumbugReporter(
-            name="TestReporter", consent=self.consent, tags=["humbug-unit-test"]
+            name="TestReporter",
+            consent=self.consent,
+            tags=["humbug-unit-test"],
+            blacklist_fn=blacklist.generate_filter_parameters_by_key_inner_fn(
+                ["private"]
+            ),
         )
         self.reporter.publish = MagicMock()
 
@@ -72,11 +77,37 @@ class TestReporter(unittest.TestCase):
 
     def test_feature_report(self):
         report = self.reporter.feature_report(
-            "test_feature", {"population": "A", "version": "2"}, publish=False
+            "test_feature",
+            {
+                "population": "A",
+                "version": "2",
+                "private": "confidential",
+                "inner": {"private": "confidential"},
+            },
+            publish=False,
         )
         self.assertTrue("feature:{}".format("test_feature") in report.tags)
         self.assertTrue("parameter:{}={}".format("population", "A") in report.tags)
         self.assertTrue("parameter:{}={}".format("version", "2") in report.tags)
+        self.assertTrue(
+            "parameter:{}={}".format("private", "confidential") not in report.tags
+        )
+        self.assertTrue("parameter:{}={{}}".format("inner") in report.tags)
+
+    def test_feature_report_not_apply_blacklist(self):
+        report = self.reporter.feature_report(
+            "test_feature_not_apply_blacklist",
+            {
+                "private": "confidential",
+                "inner": {"private": "confidential"},
+            },
+            publish=False,
+            apply_blacklist=False,
+        )
+        self.assertTrue(
+            "parameter:{}={}".format("private", "confidential") in report.tags
+        )
+        self.assertTrue("parameter:{}={{}}".format("inner") not in report.tags)
 
     def test_record_call(self):
         @self.reporter.record_call
