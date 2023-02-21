@@ -11,7 +11,9 @@ class TestReporter(unittest.TestCase):
             name="TestReporter",
             consent=self.consent,
             tags=["humbug-unit-test"],
-            blacklist_fn=blacklist.generate_filter_parameters_by_key_fn(["private"]),
+            blacklist_fn=blacklist.generate_filter_parameters_by_key_inner_fn(
+                ["private"]
+            ),
         )
         self.reporter.publish = MagicMock()
 

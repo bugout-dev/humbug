@@ -19,6 +19,30 @@ def generate_filter_parameters_by_key_fn(
     def filter_parameters_by_key(
         parameters: Dict[str, Any],
     ) -> Dict[str, Any]:
+        return {
+            k: str(v)
+            for k, v in parameters.items()
+            if k.lower() not in lowercase_blacklist_keys
+        }
+
+    return filter_parameters_by_key
+
+
+def generate_filter_parameters_by_key_inner_fn(
+    blacklist_keys: List[str],
+) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
+    """
+    Generates a parameter filter function which filters out the parameters whose names are in the given
+    list of blacklist_keys for 1st and 2nd layer of dictionary. Expands pydantic model to dictionary.
+
+    The comparison to blacklist_keys is case insensitive.
+    """
+
+    lowercase_blacklist_keys = [key.lower() for key in blacklist_keys]
+
+    def filter_parameters_by_key_inner(
+        parameters: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """
         Applies blacklist filter to provided parameters and to 2nd layer of
         inner dictionary parameter if exists.
@@ -54,4 +78,4 @@ def generate_filter_parameters_by_key_fn(
 
         return whitelisted_parameters
 
-    return filter_parameters_by_key
+    return filter_parameters_by_key_inner
