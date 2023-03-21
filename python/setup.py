@@ -9,10 +9,7 @@ setup(
     version="0.2.8",
     packages=find_packages(),
     package_data={"humbug": ["py.typed"]},
-    install_requires=[
-        "requests",
-        "dataclasses; python_version=='3.6'"
-    ],
+    install_requires=["requests", "dataclasses; python_version=='3.6'"],
     extras_require={
         "dev": [
             "black",
@@ -23,6 +20,7 @@ setup(
             "types-dataclasses",
         ],
         "distribute": ["setuptools", "twine", "wheel"],
+        "profile": ["psutil","GPUtil"],
     },
     description="Humbug: Do you build developer tools? Humbug helps you know your users.",
     long_description=long_description,
