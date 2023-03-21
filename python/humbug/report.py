@@ -538,7 +538,7 @@ Feature: {name}
         network = True
         open_files_flag = True
         num_threads_flag = True
-
+        processes_flag = True
 
         psutil_available = True
         gputil_available = True
@@ -558,14 +558,25 @@ Feature: {name}
                 metrics_cpu["cpu_count_physical"] = psutil.cpu_count(logical=False)
                 metrics_cpu["cpu_percent"] = psutil.cpu_percent()
                 metrics_cpu["cpu_percent_per_core"] = psutil.cpu_percent(percpu=True)
-                metrics_cpu["cpu_times"] = psutil.cpu_times()
-                metrics_cpu["cpu_times_percent"] = psutil.cpu_times_percent()
-                metrics_cpu["cpu_times_percent_per_core"] = psutil.cpu_times_percent(
-                    percpu=True
-                )
-                metrics_cpu["cpu_stats"] = psutil.cpu_stats()
-                metrics_cpu["cpu_freq_Mhz"] = psutil.cpu_freq()
-                metrics_cpu["cpu_freq_per_core_Mhz"] = psutil.cpu_freq(percpu=True)
+                # metrics_cpu["cpu_times"] = psutil.cpu_times()
+                # metrics_cpu["cpu_times_percent"] = psutil.cpu_times_percent()
+                # metrics_cpu["cpu_times_percent_per_core"] = psutil.cpu_times_percent(
+                #     percpu=True
+                # )
+                # metrics_cpu["cpu_stats"] = psutil.cpu_stats()
+                # metrics_cpu["cpu_freq_Mhz"] = psutil.cpu_freq()
+                # metrics_cpu["cpu_freq_per_core_Mhz"] = psutil.cpu_freq(percpu=True)
+                # cpu_load by process
+
+                # Get the PID of the current process
+                current_pid = os.getpid()
+
+                # Use psutil to get more information about the current process
+                current_process = psutil.Process(current_pid)
+
+                metrics_cpu["cpu_load_by_process"] = current_process.cpu_percent()
+            
+            metrics["cpu"] = metrics_cpu
 
 
         if gpu:
@@ -718,6 +729,32 @@ Feature: {name}
     
                     num_threads = psutil.Process().num_threads()
                     metrics["num_threads"]["total"] = num_threads
+
+        if processes_flag:
+                            
+                if 'psutil' not in sys.modules:
+                    try:
+                        import psutil
+                    except ImportError:
+                        psutil_available = False
+        
+                if psutil_available:
+        
+                    metrics["processes"] = {}
+
+                    # get all processes memory usage
+
+                    processes = psutil.process_iter()
+
+                    # Iterate through each process and get its CPU and memory utilization
+                    for process in processes:
+                        cpu_percent = process.cpu_percent()
+                        mem_info = process.memory_info()
+                        metrics["processes"][f"{process.name()}_{process.pid}"] = {
+                            "cpu_percent": cpu_percent,
+                            "memory_MB": round(mem_info.rss / 1024 / 1024, 2), # in MB
+                        }
+
 
         
         report = Report(
