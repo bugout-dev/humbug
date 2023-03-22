@@ -3,35 +3,30 @@ import types
 import sys
 
 
-
-
 def try_import_if_not_imported(module: str):
-    
-    if module == 'psutil':
-        if 'psutil' not in sys.modules:
+    if module == "psutil":
+        if "psutil" not in sys.modules:
             try:
-                import psutil 
+                import psutil
             except ImportError:
                 print("psutil not installed")
                 return False
         return sys.modules[module]
-        
-    if module == 'GPUtil':
-        if 'GPUtil' not in sys.modules:
+
+    if module == "GPUtil":
+        if "GPUtil" not in sys.modules:
             try:
-                import GPUtil # type: ignore
+                import GPUtil  # type: ignore
             except ImportError:
                 print("GPUtil not installed")
                 return False
         return sys.modules[module]
-        
+
     return False
 
 
-
 def get_cpu_metrics():
-
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
     cpu_metrics = {}
     if isinstance(psutil, types.ModuleType):
         cpu_metrics["cpu_count"] = psutil.cpu_count()
@@ -44,11 +39,11 @@ def get_cpu_metrics():
         cpu_metrics["cpu_load_by_process"] = current_process.cpu_percent()
     return cpu_metrics
 
+
 def get_gpu_metrics():
-    
     gpu_metrics = {}
 
-    GPUtil = try_import_if_not_imported('GPUtil')
+    GPUtil = try_import_if_not_imported("GPUtil")
     if isinstance(GPUtil, types.ModuleType):
         gpus = GPUtil.getGPUs()
         for gpu_unit in gpus:
@@ -57,8 +52,8 @@ def get_gpu_metrics():
             gpu_metrics[f"gpu_{gpu_id}_load"] = gpu_unit.load
             gpu_metrics[f"gpu_{gpu_id}_memory_util_%"] = gpu_unit.memoryUtil
             gpu_metrics[f"gpu_{gpu_id}_memory_total_MB"] = gpu_unit.memoryTotal
-            gpu_metrics[f"gpu_{gpu_id}_memory_used_MB"] = gpu_unit.memoryUsed 
-            gpu_metrics[f"gpu_{gpu_id}_memory_free_MB"] = gpu_unit.memoryFree 
+            gpu_metrics[f"gpu_{gpu_id}_memory_used_MB"] = gpu_unit.memoryUsed
+            gpu_metrics[f"gpu_{gpu_id}_memory_free_MB"] = gpu_unit.memoryFree
             gpu_metrics[f"gpu_{gpu_id}_driver"] = gpu_unit.driver
             gpu_metrics[f"gpu_{gpu_id}_name"] = gpu_unit.name
             gpu_metrics[f"gpu_{gpu_id}_serial"] = gpu_unit.serial
@@ -68,8 +63,9 @@ def get_gpu_metrics():
         gpu_metrics["gpu_count"] = len(gpus)
     return gpu_metrics
 
+
 def get_memory_metrics():
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
     memory_metrics = {}
     if isinstance(psutil, types.ModuleType):
         system_memory = psutil.virtual_memory()
@@ -87,45 +83,52 @@ def get_memory_metrics():
 
 
 def get_disk_metrics():
-        
-
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
 
     disk_metrics = {}
 
     if isinstance(psutil, types.ModuleType):
-
         for disk_partition in psutil.disk_partitions():
             disk_usage = psutil.disk_usage(disk_partition.mountpoint)
             disk_metrics[str(disk_partition.mountpoint)] = {}
-            disk_metrics[str(disk_partition.mountpoint)]["total_MB"] = round(disk_usage.total / 1024 / 1024, 2) # in MB
-            disk_metrics[str(disk_partition.mountpoint)]["used_MB"] = round(disk_usage.used / 1024 / 1024, 2) # in MB
-            disk_metrics[str(disk_partition.mountpoint)]["free_MB"] = round(disk_usage.free / 1024 / 1024, 2) # in MB
-            disk_metrics[str(disk_partition.mountpoint)]["percent_%"] = disk_usage.percent
-
+            disk_metrics[str(disk_partition.mountpoint)]["total_MB"] = round(
+                disk_usage.total / 1024 / 1024, 2
+            )  # in MB
+            disk_metrics[str(disk_partition.mountpoint)]["used_MB"] = round(
+                disk_usage.used / 1024 / 1024, 2
+            )  # in MB
+            disk_metrics[str(disk_partition.mountpoint)]["free_MB"] = round(
+                disk_usage.free / 1024 / 1024, 2
+            )  # in MB
+            disk_metrics[str(disk_partition.mountpoint)][
+                "percent_%"
+            ] = disk_usage.percent
 
         disk_io = psutil.disk_io_counters()
         disk_metrics["read_count"] = disk_io.read_count
         disk_metrics["write_count"] = disk_io.write_count
-        disk_metrics["read_MB"] = round(disk_io.read_bytes / 1024 / 1024, 2) # in MB
-        disk_metrics["write_MB"] = round(disk_io.write_bytes / 1024 / 1024, 2) # in MB
-        disk_metrics["read_time_s"] = disk_io.read_time / 1000 # in seconds
-        disk_metrics["write_time_s"] = disk_io.write_time / 1000 # in seconds
+        disk_metrics["read_MB"] = round(disk_io.read_bytes / 1024 / 1024, 2)  # in MB
+        disk_metrics["write_MB"] = round(disk_io.write_bytes / 1024 / 1024, 2)  # in MB
+        disk_metrics["read_time_s"] = disk_io.read_time / 1000  # in seconds
+        disk_metrics["write_time_s"] = disk_io.write_time / 1000  # in seconds
         disk_metrics["read_merged_count"] = disk_io.read_merged_count
         disk_metrics["write_merged_count"] = disk_io.write_merged_count
-        disk_metrics["busy_time_s"] = round(disk_io.busy_time,2) / 1000 # in seconds
+        disk_metrics["busy_time_s"] = round(disk_io.busy_time, 2) / 1000  # in seconds
     return disk_metrics
 
-def get_network_metrics():
 
-    psutil = try_import_if_not_imported('psutil')
+def get_network_metrics():
+    psutil = try_import_if_not_imported("psutil")
     network_metrics = {}
 
     if isinstance(psutil, types.ModuleType):
-
         network_io = psutil.net_io_counters()
-        network_metrics["MB_sent"] = round(network_io.bytes_sent / 1024 / 1024, 2) # in MB
-        network_metrics["MB_recv"] = round(network_io.bytes_recv / 1024 / 1024, 2) # in MB
+        network_metrics["MB_sent"] = round(
+            network_io.bytes_sent / 1024 / 1024, 2
+        )  # in MB
+        network_metrics["MB_recv"] = round(
+            network_io.bytes_recv / 1024 / 1024, 2
+        )  # in MB
         network_metrics["packets_sent"] = network_io.packets_sent
         network_metrics["packets_recv"] = network_io.packets_recv
         network_metrics["errin"] = network_io.errin
@@ -135,14 +138,13 @@ def get_network_metrics():
 
     return network_metrics
 
-def get_open_files_metrics():
 
+def get_open_files_metrics():
     files_metrics = {}
 
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
 
     if isinstance(psutil, types.ModuleType):
-
         open_files = psutil.Process().open_files()
         files_metrics["total"] = len(open_files)
 
@@ -150,27 +152,23 @@ def get_open_files_metrics():
 
 
 def get_thread_metrics():
-
     threads_metrics = {}
 
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
 
     if isinstance(psutil, types.ModuleType):
-
         threads = psutil.Process().threads()
         threads_metrics["total"] = len(threads)
 
     return threads_metrics
 
+
 def get_processes_metrics():
-
-
-    psutil = try_import_if_not_imported('psutil')
+    psutil = try_import_if_not_imported("psutil")
 
     process_metrics = {}
 
     if isinstance(psutil, types.ModuleType):
-
         # get all processes memory usage
 
         processes = psutil.process_iter()
@@ -182,12 +180,12 @@ def get_processes_metrics():
             if process.name() not in process_metrics:
                 process_metrics[f"{process.name()}"] = {
                     "cpu_percent": cpu_percent,
-                    "memory_MB": round(mem_info.rss / 1024 / 1024, 2), # in MB
+                    "memory_MB": round(mem_info.rss / 1024 / 1024, 2),  # in MB
                 }
             else:
                 process_metrics[f"{process.name()}"]["cpu_percent"] += cpu_percent
-                process_metrics[f"{process.name()}"]["memory_MB"] += round(mem_info.rss / 1024 / 1024, 2)
-            
+                process_metrics[f"{process.name()}"]["memory_MB"] += round(
+                    mem_info.rss / 1024 / 1024, 2
+                )
+
         return process_metrics
-
-

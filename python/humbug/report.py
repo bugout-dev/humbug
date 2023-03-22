@@ -18,7 +18,7 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 import uuid
 
-import requests # type: ignore
+import requests  # type: ignore
 
 
 from . import utils
@@ -527,7 +527,8 @@ Feature: {name}
         ipython_shell.showtraceback = showtraceback
         self.setup_excepthook(publish=True, tags=tags)
 
-    def metrics_report(self,
+    def metrics_report(
+        self,
         cpu: bool = True,
         gpu: bool = True,
         memory: bool = True,
@@ -539,47 +540,37 @@ Feature: {name}
         tags: Optional[List[str]] = None,
         publish: bool = False,
         wait: bool = False,
-        ) -> Report:
-
+    ) -> Report:
         title = "Metrics report"
 
-        metrics: Dict[str,Any]  = {}
+        metrics: Dict[str, Any] = {}
 
         if cpu:
-
             metrics["cpu"] = utils.get_cpu_metrics()
 
-
         if gpu:
-                
             metrics["gpu"] = utils.get_gpu_metrics()
 
         if memory:
-    
             metrics["memory"] = utils.get_memory_metrics()
         if disk:
-                    
             metrics["disk"] = utils.get_disk_metrics()
 
         if network:
-            
             metrics["network"] = utils.get_network_metrics()
         if open_files_flag:
-            
             metrics["open_files"] = utils.get_open_files_metrics()
 
         if num_threads_flag:
-            
             metrics["num_threads"] = utils.get_thread_metrics()
 
         if processes_flag:
-                
             metrics["processes"] = utils.get_processes_metrics()
 
         tags = tags or []
 
         tags.append("type:metrics")
-        
+
         report = Report(
             title=title,
             tags=tags,
@@ -589,9 +580,7 @@ Feature: {name}
         if publish:
             self.publish(report, wait=wait)
 
-
         return report
-
 
 
 class Reporter(HumbugReporter):
