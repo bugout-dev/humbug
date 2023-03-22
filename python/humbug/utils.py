@@ -181,11 +181,13 @@ def get_processes_metrics():
                 process_metrics[f"{process.name()}"] = {
                     "cpu_percent": cpu_percent,
                     "memory_MB": round(mem_info.rss / 1024 / 1024, 2),  # in MB
+                    "amount_of_processes": 1,
                 }
             else:
                 process_metrics[f"{process.name()}"]["cpu_percent"] += cpu_percent
                 process_metrics[f"{process.name()}"]["memory_MB"] += round(
                     mem_info.rss / 1024 / 1024, 2
                 )
+                process_metrics[f"{process.name()}"]["amount_of_processes"] += 1
 
         return process_metrics
