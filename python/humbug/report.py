@@ -114,7 +114,7 @@ class HumbugReporter:
         self.blacklist_fn = blacklist_fn
 
         self.psutil_exists = psutil is not None
-        self.GPUtil_exists = GPUtil is not None
+        self.gputil_exists = GPUtil is not None
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -562,44 +562,29 @@ Feature: {name}
 
         metrics: Dict[str, Any] = {}
 
-        if cpu:
-            metrics["cpu"] = {}
-            if self.psutil_exists:
+        if self.gputil_exists:
+            metrics["gpu"] = utils.get_gpu_metrics()
+
+        if self.psutil_exists:
+            if cpu:
                 metrics["cpu"] = utils.get_cpu_metrics()
 
-        if gpu:
-            metrics["gpu"] = {}
-            if self.GPUtil_exists:
-                metrics["gpu"] = utils.get_gpu_metrics()
-
-        if memory:
-            metrics["memory"] = {}
-
-            if self.psutil_exists:
+            if memory:
                 metrics["memory"] = utils.get_memory_metrics()
 
-        if disk:
-            metrics["disk"] = {}
-            if self.psutil_exists:
+            if disk:
                 metrics["disk"] = utils.get_disk_metrics()
 
-        if network:
-            metrics["network"] = {}
-            if self.psutil_exists:
+            if network:
                 metrics["network"] = utils.get_network_metrics()
-        if open_files_flag:
-            metrics["open_files"] = {}
-            if self.psutil_exists:
+
+            if open_files_flag:
                 metrics["open_files"] = utils.get_open_files_metrics()
 
-        if num_threads_flag:
-            metrics["num_threads"] = {}
-            if self.psutil_exists:
+            if num_threads_flag:
                 metrics["num_threads"] = utils.get_thread_metrics()
 
-        if processes_flag:
-            metrics["processes"] = {}
-            if self.psutil_exists:
+            if processes_flag:
                 metrics["processes"] = utils.get_processes_metrics()
 
         tags = tags if tags is not None else []
