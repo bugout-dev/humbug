@@ -28,6 +28,20 @@ from .system_information import (
     generate as generate_system_information,
 )
 
+psutil = None
+
+try:
+    import psutil  # type: ignore
+except ImportError:
+    pass
+
+GPUtil = None
+
+try:
+    import GPUtil  # type: ignore
+except ImportError:
+    pass
+
 
 DEFAULT_URL = "https://spire.bugout.dev"
 
@@ -98,6 +112,9 @@ class HumbugReporter:
             self.tags = tags
 
         self.blacklist_fn = blacklist_fn
+
+        self.psutil_exists = psutil is not None
+        self.GPUtil_exists = GPUtil is not None
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -546,28 +563,46 @@ Feature: {name}
         metrics: Dict[str, Any] = {}
 
         if cpu:
-            metrics["cpu"] = utils.get_cpu_metrics()
+            metrics["cpu"] = {}
+            if self.psutil_exists:
+                metrics["cpu"] = utils.get_cpu_metrics()
 
         if gpu:
-            metrics["gpu"] = utils.get_gpu_metrics()
+            metrics["gpu"] = {}
+            if self.GPUtil_exists:
+                metrics["gpu"] = utils.get_gpu_metrics()
 
         if memory:
-            metrics["memory"] = utils.get_memory_metrics()
+            metrics["memory"] = {}
+
+            if self.psutil_exists:
+                metrics["memory"] = utils.get_memory_metrics()
+
         if disk:
-            metrics["disk"] = utils.get_disk_metrics()
+            metrics["disk"] = {}
+            if self.psutil_exists:
+                metrics["disk"] = utils.get_disk_metrics()
 
         if network:
-            metrics["network"] = utils.get_network_metrics()
+            metrics["network"] = {}
+            if self.psutil_exists:
+                metrics["network"] = utils.get_network_metrics()
         if open_files_flag:
-            metrics["open_files"] = utils.get_open_files_metrics()
+            metrics["open_files"] = {}
+            if self.psutil_exists:
+                metrics["open_files"] = utils.get_open_files_metrics()
 
         if num_threads_flag:
-            metrics["num_threads"] = utils.get_thread_metrics()
+            metrics["num_threads"] = {}
+            if self.psutil_exists:
+                metrics["num_threads"] = utils.get_thread_metrics()
 
         if processes_flag:
-            metrics["processes"] = utils.get_processes_metrics()
+            metrics["processes"] = {}
+            if self.psutil_exists:
+                metrics["processes"] = utils.get_processes_metrics()
 
-        tags = tags or []
+        tags = tags if tags is not None else []
 
         tags.append("type:metrics")
 
