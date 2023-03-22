@@ -5,9 +5,9 @@ import sys
 
 
 
-def try_import_if_not_imported(module):
+def try_import_if_not_imported(module: str):
     
-    if 'psutil' in module:
+    if module == 'psutil':
         if 'psutil' not in sys.modules:
             try:
                 import psutil
@@ -15,7 +15,7 @@ def try_import_if_not_imported(module):
                 return False
         return psutil
         
-    if 'GPUtil' in module:
+    if module == 'GPUtil':
         if 'GPUtil' not in sys.modules:
             try:
                 import GPUtil # type: ignore
