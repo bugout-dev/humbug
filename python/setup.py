@@ -18,6 +18,7 @@ setup(
             "types-pkg_resources",
             "types-requests",
             "types-dataclasses",
+            "types-psutil"
         ],
         "distribute": ["setuptools", "twine", "wheel"],
         "profile": ["psutil","GPUtil","types-psutil"],
