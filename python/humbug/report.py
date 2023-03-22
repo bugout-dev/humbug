@@ -18,8 +18,10 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 import uuid
 
-import requests
+import requests # type: ignore
 
+
+from . import utils
 from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
@@ -525,243 +527,68 @@ Feature: {name}
         ipython_shell.showtraceback = showtraceback
         self.setup_excepthook(publish=True, tags=tags)
 
-    def metrics_report(self) -> Report:
+    def metrics_report(self,
+        cpu: bool = True,
+        gpu: bool = True,
+        memory: bool = True,
+        disk: bool = True,
+        network: bool = True,
+        open_files_flag: bool = True,
+        num_threads_flag: bool = True,
+        processes_flag: bool = True,
+        tags: Optional[List[str]] = None,
+        publish: bool = False,
+        wait: bool = False,
+        ) -> Report:
 
         title = "Metrics report"
 
         metrics: Dict[str,Any]  = {}
 
-        cpu = True
-        gpu = True
-        memory = True
-        disk = True
-        network = True
-        open_files_flag = True
-        num_threads_flag = True
-        processes_flag = True
-
-        psutil_available = True
-        gputil_available = True
-
         if cpu:
 
-            try:
-                import psutil
-            except ImportError:
-                psutil_available = False
-
-            metrics_cpu = {}
-
-            if psutil_available:
-                metrics_cpu["cpu_count"] = psutil.cpu_count()
-                metrics_cpu["cpu_count_logical"] = psutil.cpu_count(logical=True)
-                metrics_cpu["cpu_count_physical"] = psutil.cpu_count(logical=False)
-                metrics_cpu["cpu_percent"] = psutil.cpu_percent()
-                metrics_cpu["cpu_percent_per_core"] = psutil.cpu_percent(percpu=True)
-                # metrics_cpu["cpu_times"] = psutil.cpu_times()
-                # metrics_cpu["cpu_times_percent"] = psutil.cpu_times_percent()
-                # metrics_cpu["cpu_times_percent_per_core"] = psutil.cpu_times_percent(
-                #     percpu=True
-                # )
-                # metrics_cpu["cpu_stats"] = psutil.cpu_stats()
-                # metrics_cpu["cpu_freq_Mhz"] = psutil.cpu_freq()
-                # metrics_cpu["cpu_freq_per_core_Mhz"] = psutil.cpu_freq(percpu=True)
-                # cpu_load by process
-
-                # Get the PID of the current process
-                current_pid = os.getpid()
-
-                # Use psutil to get more information about the current process
-                current_process = psutil.Process(current_pid)
-
-                metrics_cpu["cpu_load_by_process"] = current_process.cpu_percent()
-            
-            metrics["cpu"] = metrics_cpu
+            metrics["cpu"] = utils.get_cpu_metrics()
 
 
         if gpu:
-            try:
-                import GPUtil
-            except ImportError:
-                gputil_available = False
-            
-            if gputil_available:
-
-                gpus = GPUtil.getGPUs()
-
-                gpu_metrics = {}
-
-                for gpu_unit in gpus:
-                    gpu_metrics["gpu_count"] = len(gpus)
-                    gpu_id = gpu_unit.id
-                    gpu_uuid = gpu_unit.uuid
-                    gpu_load = gpu_unit.load
-                    gpu_memory_util = gpu_unit.memoryUtil
-                    gpu_memory_total = gpu_unit.memoryTotal
-                    gpu_memory_used = gpu_unit.memoryUsed 
-                    gpu_memory_free = gpu_unit.memoryFree 
-                    gpu_driver = gpu_unit.driver
-                    gpu_name = gpu_unit.name
-                    gpu_serial = gpu_unit.serial
-                    gpu_display_mode = gpu_unit.display_mode
-                    gpu_display_active = gpu_unit.display_active
-                    gpu_temperature = gpu_unit.temperature
-
-                    gpu_metrics[f"gpu_{gpu_id}_uuid"] = gpu_uuid
-                    gpu_metrics[f"gpu_{gpu_id}_load"] = gpu_load
-                    gpu_metrics[f"gpu_{gpu_id}_memory_util_%"] = gpu_memory_util
-                    gpu_metrics[f"gpu_{gpu_id}_memory_total_MB"] = gpu_memory_total
-                    gpu_metrics[f"gpu_{gpu_id}_memory_used_MB"] = gpu_memory_used
-                    gpu_metrics[f"gpu_{gpu_id}_memory_free_MB"] = gpu_memory_free
-                    gpu_metrics[f"gpu_{gpu_id}_driver"] = gpu_driver
-                    gpu_metrics[f"gpu_{gpu_id}_name"] = gpu_name
-                    gpu_metrics[f"gpu_{gpu_id}_serial"] = gpu_serial
-                    gpu_metrics[f"gpu_{gpu_id}_display_mode"] = gpu_display_mode
-                    gpu_metrics[f"gpu_{gpu_id}_display_active"] = gpu_display_active
-                    gpu_metrics[f"gpu_{gpu_id}_temperature_C"] = gpu_temperature
-
-                metrics["gpu"] = gpu_metrics
+                
+            metrics["gpu"] = utils.get_gpu_metrics()
 
         if memory:
-
-            if 'psutil' not in sys.modules:
-                try:
-                    import psutil
-                except ImportError:
-                    psutil_available = False
-
-            if psutil_available:
-
-                metrics["memory"] =  {}
-
-                system_memory = psutil.virtual_memory()
-                metrics["memory"]["total_MB"] = round(system_memory.total / 1024 / 1024, 2) # in MB
-                metrics["memory"]["available_MB"] = round(system_memory.available / 1024 / 1024, 2) # in MB
-                metrics["memory"]["percent_%"] = system_memory.percent
-                metrics["memory"]["used_MB"] = round(system_memory.used / 1024 / 1024, 2) # in MB
-                metrics["memory"]["free_MB"] = round(system_memory.free / 1024 / 1024, 2) # in MB
-
-                swap = psutil.swap_memory()
-                metrics["memory"]["swap_total_MB"] = round(swap.total / 1024 / 1024, 2) # in MB
-                metrics["memory"]["swap_used_MB"] = round(swap.used / 1024 / 1024, 2) # in MB
-                metrics["memory"]["swap_free_MB"] = round(swap.free / 1024 / 1024, 2) # in MB
-                metrics["memory"]["swap_percent_%"] = swap.percent
+    
+            metrics["memory"] = utils.get_memory_metrics()
         if disk:
-                
-                if 'psutil' not in sys.modules:
-                    try:
-                        import psutil
-                    except ImportError:
-                        psutil_available = False
-    
-                if psutil_available:
-    
-                    metrics["disk"] = {}
-
-                    for disk_partition in psutil.disk_partitions():
-                        disk_usage = psutil.disk_usage(disk_partition.mountpoint)
-                        metrics["disk"][str(disk_partition.mountpoint)] = {}
-                        metrics["disk"][str(disk_partition.mountpoint)]["total_MB"] = round(disk_usage.total / 1024 / 1024, 2) # in MB
-                        metrics["disk"][str(disk_partition.mountpoint)]["used_MB"] = round(disk_usage.used / 1024 / 1024, 2) # in MB
-                        metrics["disk"][str(disk_partition.mountpoint)]["free_MB"] = round(disk_usage.free / 1024 / 1024, 2) # in MB
-                        metrics["disk"][str(disk_partition.mountpoint)]["percent_%"] = disk_usage.percent
-
-    
-                    disk_io = psutil.disk_io_counters()
-                    metrics["disk"]["read_count"] = disk_io.read_count
-                    metrics["disk"]["write_count"] = disk_io.write_count
-                    metrics["disk"]["read_MB"] = round(disk_io.read_bytes / 1024 / 1024, 2) # in MB
-                    metrics["disk"]["write_MB"] = round(disk_io.write_bytes / 1024 / 1024, 2) # in MB
-                    metrics["disk"]["read_time_s"] = disk_io.read_time / 1000 # in seconds
-                    metrics["disk"]["write_time_s"] = disk_io.write_time / 1000 # in seconds
-                    metrics["disk"]["read_merged_count"] = disk_io.read_merged_count
-                    metrics["disk"]["write_merged_count"] = disk_io.write_merged_count
-                    metrics["disk"]["busy_time_s"] = round(disk_io.busy_time,2) / 1000 # in seconds
+                    
+            metrics["disk"] = utils.get_disk_metrics()
 
         if network:
-                
-                if 'psutil' not in sys.modules:
-                    try:
-                        import psutil
-                    except ImportError:
-                        psutil_available = False
-    
-                if psutil_available:
-    
-                    metrics["network"] = {}
-    
-                    network_io = psutil.net_io_counters()
-                    metrics["network"]["MB_sent"] = round(network_io.bytes_sent / 1024 / 1024, 2) # in MB
-                    metrics["network"]["MB_recv"] = round(network_io.bytes_recv / 1024 / 1024, 2) # in MB
-                    metrics["network"]["packets_sent"] = network_io.packets_sent
-                    metrics["network"]["packets_recv"] = network_io.packets_recv
-                    metrics["network"]["errin"] = network_io.errin
-                    metrics["network"]["errout"] = network_io.errout
-                    metrics["network"]["dropin"] = network_io.dropin
-                    metrics["network"]["dropout"] = network_io.dropout
-
+            
+            metrics["network"] = utils.get_network_metrics()
         if open_files_flag:
-                    
-            if 'psutil' not in sys.modules:
-                try:
-                    import psutil
-                except ImportError:
-                    psutil_available = False
-
-            if psutil_available:
-
-                metrics["open_files"] = {}
-
-                open_files = psutil.Process().open_files()
-                metrics["open_files"]["total"] = len(open_files)
+            
+            metrics["open_files"] = utils.get_open_files_metrics()
 
         if num_threads_flag:
-                        
-                if 'psutil' not in sys.modules:
-                    try:
-                        import psutil
-                    except ImportError:
-                        psutil_available = False
-    
-                if psutil_available:
-    
-                    metrics["num_threads"] = {}
-    
-                    num_threads = psutil.Process().num_threads()
-                    metrics["num_threads"]["total"] = num_threads
+            
+            metrics["num_threads"] = utils.get_thread_metrics()
 
         if processes_flag:
-                            
-                if 'psutil' not in sys.modules:
-                    try:
-                        import psutil
-                    except ImportError:
-                        psutil_available = False
-        
-                if psutil_available:
-        
-                    metrics["processes"] = {}
+                
+            metrics["processes"] = utils.get_processes_metrics()
 
-                    # get all processes memory usage
+        tags = tags or []
 
-                    processes = psutil.process_iter()
-
-                    # Iterate through each process and get its CPU and memory utilization
-                    for process in processes:
-                        cpu_percent = process.cpu_percent()
-                        mem_info = process.memory_info()
-                        metrics["processes"][f"{process.name()}_{process.pid}"] = {
-                            "cpu_percent": cpu_percent,
-                            "memory_MB": round(mem_info.rss / 1024 / 1024, 2), # in MB
-                        }
-
-
+        tags.append("type:metrics")
         
         report = Report(
             title=title,
-            tags=["process_metrics"],
+            tags=tags,
             content=f"```\n{json.dumps(metrics, indent=4, sort_keys=True)}\n```",
         )
+
+        if publish:
+            self.publish(report, wait=wait)
+
 
         return report
 

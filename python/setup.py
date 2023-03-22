@@ -20,7 +20,7 @@ setup(
             "types-dataclasses",
         ],
         "distribute": ["setuptools", "twine", "wheel"],
-        "profile": ["psutil","GPUtil"],
+        "profile": ["psutil","GPUtil","types-psutil"],
     },
     description="Humbug: Do you build developer tools? Humbug helps you know your users.",
     long_description=long_description,
