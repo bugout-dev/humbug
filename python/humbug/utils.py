@@ -10,18 +10,20 @@ def try_import_if_not_imported(module: str):
     if module == 'psutil':
         if 'psutil' not in sys.modules:
             try:
-                import psutil
+                import psutil 
             except ImportError:
+                print("psutil not installed")
                 return False
-        return psutil
+        return sys.modules[module]
         
     if module == 'GPUtil':
         if 'GPUtil' not in sys.modules:
             try:
                 import GPUtil # type: ignore
             except ImportError:
+                print("GPUtil not installed")
                 return False
-        return GPUtil
+        return sys.modules[module]
         
     return False
 
@@ -47,7 +49,7 @@ def get_gpu_metrics():
     gpu_metrics = {}
 
     GPUtil = try_import_if_not_imported('GPUtil')
-    if not isinstance(GPUtil, types.ModuleType):
+    if isinstance(GPUtil, types.ModuleType):
         gpus = GPUtil.getGPUs()
         for gpu_unit in gpus:
             gpu_id = gpu_unit.id
@@ -91,7 +93,7 @@ def get_disk_metrics():
 
     disk_metrics = {}
 
-    if not isinstance(psutil, types.ModuleType):
+    if isinstance(psutil, types.ModuleType):
 
         for disk_partition in psutil.disk_partitions():
             disk_usage = psutil.disk_usage(disk_partition.mountpoint)
@@ -119,7 +121,7 @@ def get_network_metrics():
     psutil = try_import_if_not_imported('psutil')
     network_metrics = {}
 
-    if not isinstance(psutil, types.ModuleType):
+    if isinstance(psutil, types.ModuleType):
 
         network_io = psutil.net_io_counters()
         network_metrics["MB_sent"] = round(network_io.bytes_sent / 1024 / 1024, 2) # in MB
@@ -139,7 +141,7 @@ def get_open_files_metrics():
 
     psutil = try_import_if_not_imported('psutil')
 
-    if not isinstance(psutil, types.ModuleType):
+    if isinstance(psutil, types.ModuleType):
 
         open_files = psutil.Process().open_files()
         files_metrics["total"] = len(open_files)
@@ -153,7 +155,7 @@ def get_thread_metrics():
 
     psutil = try_import_if_not_imported('psutil')
 
-    if not isinstance(psutil, types.ModuleType):
+    if isinstance(psutil, types.ModuleType):
 
         threads = psutil.Process().threads()
         threads_metrics["total"] = len(threads)
@@ -167,7 +169,7 @@ def get_processes_metrics():
 
     process_metrics = {}
 
-    if not isinstance(psutil, types.ModuleType):
+    if isinstance(psutil, types.ModuleType):
 
         # get all processes memory usage
 
@@ -185,7 +187,7 @@ def get_processes_metrics():
             else:
                 process_metrics[f"{process.name()}"]["cpu_percent"] += cpu_percent
                 process_metrics[f"{process.name()}"]["memory_MB"] += round(mem_info.rss / 1024 / 1024, 2)
-                
-
+            
+        return process_metrics
 
 
