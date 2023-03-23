@@ -590,6 +590,7 @@ Feature: {name}
         tags = tags if tags is not None else []
 
         tags.append("type:metrics")
+        tags.extend(self.system_tags())
 
         report = Report(
             title=title,
