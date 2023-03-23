@@ -7,6 +7,7 @@ import concurrent.futures
 from dataclasses import dataclass, field
 from enum import Enum
 from functools import wraps
+import json
 
 import logging
 import os
@@ -17,13 +18,29 @@ import traceback
 from typing import Any, Callable, Dict, List, Optional
 import uuid
 
-import requests
+import requests  # type: ignore
 
+
+from . import utils
 from .consent import HumbugConsent
 from .system_information import (
     SystemInformation,
     generate as generate_system_information,
 )
+
+psutil = None
+
+try:
+    import psutil  # type: ignore
+except ImportError:
+    pass
+
+GPUtil = None
+
+try:
+    import GPUtil  # type: ignore
+except ImportError:
+    pass
 
 
 DEFAULT_URL = "https://spire.bugout.dev"
@@ -95,6 +112,9 @@ class HumbugReporter:
             self.tags = tags
 
         self.blacklist_fn = blacklist_fn
+
+        self.psutil_exists = psutil is not None
+        self.gputil_exists = GPUtil is not None
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -523,6 +543,65 @@ Feature: {name}
 
         ipython_shell.showtraceback = showtraceback
         self.setup_excepthook(publish=True, tags=tags)
+
+    def metrics_report(
+        self,
+        cpu: bool = True,
+        gpu: bool = True,
+        memory: bool = True,
+        disk: bool = True,
+        network: bool = True,
+        open_files_flag: bool = True,
+        num_threads_flag: bool = True,
+        processes_flag: bool = True,
+        tags: Optional[List[str]] = None,
+        publish: bool = False,
+        wait: bool = False,
+    ) -> Report:
+        title = "Metrics report"
+
+        metrics: Dict[str, Any] = {}
+
+        if self.gputil_exists:
+            metrics["gpu"] = utils.get_gpu_metrics()
+
+        if self.psutil_exists:
+            if cpu:
+                metrics["cpu"] = utils.get_cpu_metrics()
+
+            if memory:
+                metrics["memory"] = utils.get_memory_metrics()
+
+            if disk:
+                metrics["disk"] = utils.get_disk_metrics()
+
+            if network:
+                metrics["network"] = utils.get_network_metrics()
+
+            if open_files_flag:
+                metrics["open_files"] = utils.get_open_files_metrics()
+
+            if num_threads_flag:
+                metrics["num_threads"] = utils.get_thread_metrics()
+
+            if processes_flag:
+                metrics["processes"] = utils.get_processes_metrics()
+
+        tags = tags if tags is not None else []
+
+        tags.append("type:metrics")
+        tags.extend(self.system_tags())
+
+        report = Report(
+            title=title,
+            tags=tags,
+            content=f"```\n{json.dumps(metrics, indent=4, sort_keys=True)}\n```",
+        )
+
+        if publish:
+            self.publish(report, wait=wait)
+
+        return report
 
 
 class Reporter(HumbugReporter):

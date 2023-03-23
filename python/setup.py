@@ -6,13 +6,10 @@ with open("README.md") as ifp:
 
 setup(
     name="humbug",
-    version="0.2.8",
+    version="0.3.0",
     packages=find_packages(),
     package_data={"humbug": ["py.typed"]},
-    install_requires=[
-        "requests",
-        "dataclasses; python_version=='3.6'"
-    ],
+    install_requires=["requests", "dataclasses; python_version=='3.6'"],
     extras_require={
         "dev": [
             "black",
@@ -21,8 +18,10 @@ setup(
             "types-pkg_resources",
             "types-requests",
             "types-dataclasses",
+            "types-psutil",
         ],
         "distribute": ["setuptools", "twine", "wheel"],
+        "profile": ["psutil", "GPUtil", "types-psutil"],
     },
     description="Humbug: Do you build developer tools? Humbug helps you know your users.",
     long_description=long_description,
