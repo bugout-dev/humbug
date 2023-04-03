@@ -11,7 +11,6 @@ import json
 
 import logging
 import os
-import pkg_resources
 import sys
 import time
 import traceback
@@ -39,6 +38,13 @@ GPUtil = None
 
 try:
     import GPUtil  # type: ignore
+except ImportError:
+    pass
+
+pkg_resources = None
+
+try:
+    import pkg_resources  # type: ignore
 except ImportError:
     pass
 
@@ -115,6 +121,7 @@ class HumbugReporter:
 
         self.psutil_exists = psutil is not None
         self.gputil_exists = GPUtil is not None
+        self.pkg_resources_exists = pkg_resources is not None
 
     def wait(self) -> None:
         concurrent.futures.wait(
@@ -332,9 +339,12 @@ Release: `{os_release}`
             tags = []
         tags.append("type:dependencies")
 
-        available_packages = [
-            str(package_info) for package_info in pkg_resources.working_set
-        ]
+        available_packages = []
+
+        if self.pkg_resources_exists:
+            available_packages = [
+                str(package_info) for package_info in pkg_resources.working_set  # type: ignore
+            ]
         content = "```\n{}\n```".format("\n".join(available_packages))
         report = Report(title, content, tags)
         if publish:
