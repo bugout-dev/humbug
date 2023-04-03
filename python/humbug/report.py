@@ -345,6 +345,8 @@ Release: `{os_release}`
             available_packages = [
                 str(package_info) for package_info in pkg_resources.working_set  # type: ignore
             ]
+        else:
+            tags.append("warning:pkg_resources_import_failed")
         content = "```\n{}\n```".format("\n".join(available_packages))
         report = Report(title, content, tags)
         if publish:
