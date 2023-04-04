@@ -57,7 +57,13 @@ class TestReporter(unittest.TestCase):
     def test_packages_report_successful(self):
         tags = ["a", "b", "c"]
         pkg_report = self.reporter.packages_report(tags=tags, publish=False)
-        self.assertSetEqual(set(pkg_report.tags), set(tags + ["type:dependencies"]))
+
+        excepted_tags = tags + ["type:packages"]
+
+        if not self.reporter.pkg_resources_exists:
+            excepted_tags.append("warning:pkg_resources_import_failed")
+
+        self.assertSetEqual(set(pkg_report.tags), set(tags + excepted_tags))
 
     def test_post_body(self):
         report_title = "xylophone"
