@@ -347,6 +347,9 @@ Release: `{os_release}`
             ]
         else:
             tags.append("warning:pkg_resources_import_failed")
+            available_packages.append(
+                "Failed to import pkg_resources. Package versions are not available."
+            )
         content = "```\n{}\n```".format("\n".join(available_packages))
         report = Report(title, content, tags)
         if publish:
