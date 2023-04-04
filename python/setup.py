@@ -6,7 +6,7 @@ with open("README.md") as ifp:
 
 setup(
     name="humbug",
-    version="0.3.0",
+    version="0.3.1",
     packages=find_packages(),
     package_data={"humbug": ["py.typed"]},
     install_requires=["requests", "dataclasses; python_version=='3.6'"],
