@@ -58,7 +58,7 @@ class TestReporter(unittest.TestCase):
         tags = ["a", "b", "c"]
         pkg_report = self.reporter.packages_report(tags=tags, publish=False)
 
-        excepted_tags = tags + ["type:packages"]
+        excepted_tags = tags + ["type:dependencies"]
 
         if not self.reporter.pkg_resources_exists:
             excepted_tags.append("warning:pkg_resources_import_failed")
