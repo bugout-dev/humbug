@@ -143,7 +143,7 @@ class TestReporter(unittest.TestCase):
         report = publish_args[0][0]
         self.assertTrue("site:broken" in report.tags)
 
-    def test_metric_report(self):
+    def test_metrics_report(self):
         tags = ["a", "b", "c"]
         metrics_report = self.reporter.metrics_report(tags=tags, publish=False)
         self.assertSetEqual(set(metrics_report.tags), set(tags + ["type:metrics"]))
