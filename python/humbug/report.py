@@ -272,7 +272,7 @@ Release: `{os_release}`
             error_summary=repr(error),
             error_traceback="".join(
                 traceback.format_exception(
-                    etype=type(error),
+                    type(error),
                     value=error,
                     tb=error.__traceback__,
                 )
